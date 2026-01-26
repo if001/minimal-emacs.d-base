@@ -142,4 +142,45 @@ Each entry is a directory name like \"app\" or \"frontend\"."
 ;;; -------------node_modules/.bin/prettier実行用 -----------------
 
 
+;;; ------------- js用のeslint -----------------
+;; flymake-eslintが必要
+(defun my/eglot-flymake-enable ()
+  (when (derived-mode-p 'jtsx-jsx-mode)
+    (add-hook 'flymake-diagnostic-functions #'eglot-flymake-backend nil t)
+    (setq-local flymake-eslint-project-root (my/project-root))
+    (flymake-eslint-enable)
+    (flymake-start t)
+    )
+
+  (add-to-list 'flymake-diagnostic-functions #'eglot-flymake-backend)
+  )
+
+
+(defun my/eglot-flymake-enable ()
+  (flymake-mode 1)
+  (cond
+
+   ;; js/jsx/ts/tsx
+   ((derived-mode-p 'js-ts-mode 'typescript-ts-mode 'jtsx-jsx-mode 'jtsx-tsx-mode 'jtsx-typescript-mode)
+    (setq-local flymake-eslint-project-root (my/project-root))
+    (flymake-eslint-enable)
+    )
+
+   ;; python用
+   ;; ((derived-mode-p 'python-ts-mode)
+   ;;  )
+
+   ;; その他
+   (t
+    (unless (memq #'eglot-flymake-backend flymake-diagnostic-functions)
+      (add-hook 'flymake-diagnostic-functions #'eglot-flymake-backend nil t))
+    )
+   )
+  (flymake-start t)
+  )
+;;; ------------- js用のeslint -----------------
+
+
+
+
 ;;; myconf.el ends here

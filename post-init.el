@@ -56,20 +56,20 @@
   (setopt select-enable-clipboard 't)
   (setopt select-enable-primary nil)
   (setopt interprogram-cut-function #'gui-select-text)
-(setopt select-active-regions nil)
-;; credit: yorickvP on Github
-(setq wl-copy-process nil)
-(defun wl-copy (text)
-  (setq wl-copy-process (make-process :name "wl-copy"
+  (setopt select-active-regions nil)
+  ;; credit: yorickvP on Github
+  (setq wl-copy-process nil)
+  (defun wl-copy (text)
+    (setq wl-copy-process (make-process :name "wl-copy"
                                       :buffer nil
                                       :command '("wl-copy" "-f" "-n")
                                       :connection-type 'pipe
                                       :noquery t))
-  (process-send-string wl-copy-process text)
-  (process-send-eof wl-copy-process))
-(defun wl-paste ()
-  (if (and wl-copy-process (process-live-p wl-copy-process))
-      nil ; should return nil if we're the current paste owner
+    (process-send-string wl-copy-process text)
+    (process-send-eof wl-copy-process))
+  (defun wl-paste ()
+    (if (and wl-copy-process (process-live-p wl-copy-process))
+        nil ; should return nil if we're the current paste owner
       (shell-command-to-string "wl-paste -n | tr -d \r")))
   (setq interprogram-cut-function 'wl-copy)
   (setq interprogram-paste-function 'wl-paste)
@@ -298,13 +298,13 @@
      (window-dedicated-p (selected-window))
 
      ;; Buffer name not match below blacklist.
-     (string-prefix-p "*Flycheck" name)
-     (string-prefix-p "*Flymake log*" name)
-     (string-prefix-p "*Warnings*" name)
-     (string-prefix-p "*Messages*" name)
-     (string-prefix-p "*lsp" name)
-     (string-prefix-p "*pylsp*" name)
-     (string-prefix-p "*pylsp::stderr*" name)
+     ;; (string-prefix-p "*Flycheck" name)
+     ;; (string-prefix-p "*Flymake log*" name)
+     ;; (string-prefix-p "*Warnings*" name)
+     ;; (string-prefix-p "*Messages*" name)
+     ;; (string-prefix-p "*lsp" name)
+     ;; (string-prefix-p "*pylsp*" name)
+     ;; (string-prefix-p "*pylsp::stderr*" name)
 
      ;; Is not magit buffer.
      (and (string-prefix-p "magit" name)
@@ -894,7 +894,7 @@
   ;; eglotがflymakeのflymake-diagnostic-functionsを上書きする
   ;; flymake-collectionのdiagnostic-functionsを使うようにする
   ;; M-: flymake-diagnostic-functions
-  (add-to-list 'eglot-stay-out-of 'flymake)
+  ;; (add-to-list 'eglot-stay-out-of 'flymake)
 
   ;; language serverを追加する場合はここに追加していく
   ;; (add-to-list 'eglot-server-programs '(python-ts-mode . ("pylsp" "--verbose"))) ;;python用
@@ -1057,16 +1057,16 @@
 
 
 ;;; ----- window ----------------------------------------
-(with-eval-after-load 'electric-indent-mode
-  (define-key electric-indent-mode-map (kbd "C-j") nil)) ;; C-jを上書き
-(use-package avy
-  :ensure t
-  :commands (avy-goto-char
-             avy-goto-char-2
-             avy-next)
-  :bind
-  ("C-j" . 'avy-goto-char-2)
-  )
+;; (with-eval-after-load 'electric-indent-mode
+;;   (define-key electric-indent-mode-map (kbd "C-j") nil)) ;; C-jを上書き
+;; (use-package avy
+;;   :ensure t
+;;   :commands (avy-goto-char
+;;              avy-goto-char-2
+;;              avy-next)
+;;   :bind
+;;   ("C-j" . 'avy-goto-char-2)
+;;   )
 
 
 (use-package expand-region
@@ -1661,20 +1661,26 @@
               flymake-margin-indicator-position 'right-margin)
   :config
   (add-hook 'eglot-managed-mode-hook (lambda () (flymake-mode 1)))
+  (setq flymake-log-level 3)
   )
+;; flymake backendの追加
+(add-hook 'eglot-managed-mode-hook #'my/eglot-flymake-enable)
 
-;; js/tsではeglotのflymake backendに加えて、eslintを使うようにする
+;; js/tsではeglot(tsserver)のflymakeが動かないので、flymake backendにeslintを使う
+;; flymake-collectionのflymake-collection-eslintではエラーがでるので、
+;; flymake-eslint packageの方を使う
+;; ただし、flymake-collectionは他にも多言語用の実装があるので、必要があれば使う
 ;; M-: flymake-diagnostic-functions
-(use-package flymake-collection
-  :hook ((after-init . flymake-collection-hook-setup)
-         ((tsx-ts-mode
-           js-ts-mode
-           jtsx-jsx-mode
-           jtsx-tsx-mode
-           jtsx-typescript-mode) . (lambda () (add-to-list 'flymake-diagnostic-functions #'flymake-collection-eslint)))
-         (eglot-managed-mode . (lambda () (add-to-list 'flymake-diagnostic-functions #'eglot-flymake-backend)))
-         )
-  )
+;; (use-package flymake-collection
+;;   :hook ((after-init . flymake-collection-hook-setup)
+;;          ((tsx-ts-mode
+;;            js-ts-mode
+;;            jtsx-jsx-mode
+;;            jtsx-tsx-mode
+;;            jtsx-typescript-mode) . (lambda () (add-to-list 'flymake-diagnostic-functions #'flymake-collection-eslint)))
+;;          ;;(eglot-managed-mode . (lambda () (add-to-list 'flymake-diagnostic-functions #'eglot-flymake-backend)))
+;;          )
+;;   )
 ;; popupはeldocに任せる
 ;; (use-package flymake-popon
 ;;   :diminish
@@ -1718,19 +1724,29 @@
 ;;; -----------------------------------------
 
 ;;; --------- jsx --------------------------------
-(add-to-list 'auto-mode-alist '("\\.js\\'" . js-ts-mode))
-(add-to-list 'auto-mode-alist '("\\.jsx\\'" . js-ts-mode))
+;; (add-to-list 'auto-mode-alist '("\\.js\\'" . js-ts-mode))
+;; (add-to-list 'auto-mode-alist '("\\.jsx\\'" . js-ts-mode))
 
 ;; reformatterでglobal-prettier-formatをdefineすることでglobal-prettier-format-bufferが登録される
 ;; save-hookはreformatterを使わず手動で設定する
 (add-hook 'js-ts-mode-hook #'my/enable-prettier-on-save)
 
+;; jsではeglot(tsserver)のflymakeが動かないので、flymake-eslintを使う
+;; flymake-collectionのflymake-collection-eslintではエラーがでるので、
+(use-package flymake-eslint
+  :straight '(flymake-eslint :type git :host github :repo "orzechowskid/flymake-eslint")
+  :custom
+  ;; プロジェクトローカル eslint を使いたいなら npx が安定
+  (flymake-eslint-executable '("npx" "eslint")) ;; or ("npm" "exec" "--" "eslint")
+  (flymake-eslint-prefer-json-diagnostics t)
+  )
+
 (use-package jtsx
   :ensure t
-  ;; :mode (("\\.jsx?\\'" . jtsx-jsx-mode)
-  ;;        ("\\.tsx\\'" . jtsx-tsx-mode)
-  ;;        ("\\.ts\\'" . jtsx-typescript-mode))
-  :mode (("\\.jsx?\\'" . jtsx-jsx-mode))
+  :mode (("\\.js\\'" . jtsx-jsx-mode)
+         ("\\.jsx\\'" . jtsx-jsx-mode)
+         ("\\.tsx\\'" . jtsx-tsx-mode)
+         ("\\.ts\\'" . jtsx-typescript-mode))
   :commands jtsx-install-treesit-language
   :hook ((jtsx-jsx-mode . hs-minor-mode)
          (jtsx-tsx-mode . hs-minor-mode)
@@ -1877,7 +1893,7 @@
      ;;                              :args ("--silent" "--prefix" "~/prog/mcp/firecrawl-mcp-server" "run" "start")
      ;;                              :env (:CLOUD_SERVICE "false" :FIRECRAWL_API_KEY "test" :FIRECRAWL_API_URL "http://172.22.1.15:3002" :HTTP_STREAMABLE_SERVER "false"))
      ;;  )
-     ("firecrawl-mcp" . (:command "sh" :args ("-lc" "node" "~/prog/mcp/firecrawl-mcp-server/dist/index.js") :env (:CLOUD_SERVICE "false" :FIRECRAWL_API_KEY "test" :FIRECRAWL_API_URL "172.22.1.15:3002" :HTTP_STREAMABLE_SERVER "false")))
+    ;; ("firecrawl-mcp" . (:command "sh" :args ("-lc" "node" "~/prog/mcp/firecrawl-mcp-server/dist/index.js") :env (:CLOUD_SERVICE "false" :FIRECRAWL_API_KEY "test" :FIRECRAWL_API_URL "172.22.1.15:3002" :HTTP_STREAMABLE_SERVER "false")))
      ;; ("fetch" . (:command "uvx" :args ("mcp-server-fetch")))
      ;; ("filesystem" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-filesystem") :roots (getenv "HOME")))
      ;; ("sequential-thinking" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-sequential-thinking")))
@@ -1889,6 +1905,7 @@
      ;;                  :env (:project_root "/home/issei/prog/mcp/chat-llm-v3")
      ;;                  ))
      ;; ("code-agent-sse" . (:url "http://localhost:8000/mcp"))
+     ;; ("code-agent" . (:command "/home/issei/prog/mcp/lsp_resarch/.venv/bin/python" :args ("agent.py")))
      )
    )
 

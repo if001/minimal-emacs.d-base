@@ -1317,7 +1317,7 @@ To configure **flyspell**, add the following to `~/.emacs.d/post-init.el`:
   ;; Define the "en_US" spell-check dictionary locally, telling Emacs to use
   ;; UTF-8 encoding, match words using alphabetic characters, allow apostrophes
   ;; inside words, treat non-alphabetic characters as word boundaries, and pass
-  ;; -d en_US to the underlying spell-check program.
+  ;; -d en_USX to the underlying spell-check program.
   (ispell-local-dictionary-alist
    '(("en_US" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil ("-d" "en_US") nil utf-8)))
 

@@ -14,6 +14,8 @@
        "** %? :rad: \n:PROPERTIES:\n:CREATED: %U\n:TAG: rad\n:END:\n%i\n" :empty-lines 1 :tree-type day)
       ("s" "Micro Service" entry (file memofile)
        "** %? :microservice: \n:PROPERTIES:\n:CREATED: %U\n:TAG: microservice\n:END:\n%i\n" :empty-lines 1 :tree-type day)
+      ("p" "Posts" entry (file memofile)
+       "** %? :post: \n:PROPERTIES:\n:CREATED: %U\n:TAG: post\n:END:\n%i\n" :empty-lines 1 :tree-type day)
       )
     )
   ;; (setq listfile (concat work-directory "list.org"))

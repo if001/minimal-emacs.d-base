@@ -196,18 +196,61 @@
 ;;; ------------- theme -------------------
 (setq start-time (current-time))
 
-;; (use-package ef-themes
-;;   :ensure t
-;;   :config
-;;   (setq ef-themes-mixed-fonts t
-;;         ef-themes-variable-pitch-ui t)
-;;   (load-theme 'ef-melissa-light t)
-;;   ;;(load-theme 'ef-light t)
-;;   ;;(load-theme 'ef-elea-dark)
-;;   ;;(load-theme 'ef-duo-light)
-;;   ;;(load-theme 'ef-dream)
-;;   ;;(load-theme 'ef-owl t)
-;;   )
+
+(setq overwrite-palette '(
+          ;; Basic value
+          (bg-main          "#ffffff")
+          (bg-dim           "#f2f2f2")
+          (fg-main          "#24292f") ;; default #000000"
+          (fg-dim           "#595959")
+          (fg-alt           "#193668")
+          ;; (bg-active        "#c4c4c4")
+          ;; (bg-inactive      "#e0e0e0")
+          ;; (border           "#9f9f9f")
+
+          ;; Uncommon accent foregrounds
+          ;; (orange           "#bc4c00")
+          (orange           "#D67200") ;; github Lime 5
+          (yellow-light     "#fff8c5")  ;; 黄色
+
+          ;; Special purpose
+          (bg-region         yellow-light)
+          (bg-tab-current    bg-main)
+          ;; (bg-tab-bar        bg-alt)
+          (bg-tab-bar        bg-active)
+          (bg-tab-other      bg-active)
+
+          ;; Code mappings
+          (comment           fg-dim)
+          (operator          blue-faint)
+          (keyword           orange) ;; オレンジ
+          ;; (builtin           cyan-intense)
+          ;; (builtin           fg-main)
+          ;; (builtin           orange)
+          (variable          fg-main)
+          (type              fg-main)
+          (property          blue-warmer)
+          (string            fg-alt)
+          (fnname            blue-warmer)
+
+          ;; General mappings
+          (cursor            fg-dim)
+          ))
+(use-package ef-themes
+  :ensure t
+  ;; :init
+  ;; (ef-themes-take-over-modus-themes-mode 1)
+  :config
+  (setq ef-themes-mixed-fonts t
+        ef-themes-variable-pitch-ui t)
+  ;; (modus-themes-load-theme 'ef-melissa-light)
+  (modus-themes-load-theme 'ef-duo-light)
+  (custom-set-faces
+   '(font-lock-property-use-face ((t (:foreground "#3548cf"))))) ;; blue-warmer: #3548cf
+  :custom
+  ;;(ef-melissa-light-palette-overrides overwrite-palette)
+  (ef-duo-light-palette-overrides overwrite-palette)
+  )
 
 
 ;; (setq timu-spacegrey-flavour "light")
@@ -240,159 +283,92 @@
 ;;   (load-theme 'github t))
 
 
-(use-package modus-themes
-  :ensure t
-  :demand t
-  :init
-  ;; (modus-themes-include-derivatives-mode 1)
-  :config
-  (setq modus-themes-mixed-fonts t
-        modus-themes-variable-pitch-ui t
-        modus-themes-italic-constructs t
-        modus-themes-bold-constructs t
-        modus-themes-completions '((t . (bold)))
-        modus-themes-prompts '(bold)
-        modus-themes-headings
-        '((agenda-structure . (variable-pitch light 2.2))
-          (agenda-date . (variable-pitch regular 1.3))
-          (t . (regular 1.15))))
-
-  (setq modus-themes-bold-constructs nil) ;; boldを無効化
-  (setq modus-themes-common-palette-overrides
-        '(
-          ;; --- GitHub Light ---
-          ;; Basic values
-          (bg-main          "#ffffff")
-          (bg-dim           "#f2f2f2")
-          (fg-main          "#24292f") ;; default #000000"
-          (fg-dim           "#595959")
-          (fg-alt           "#193668")
-          (bg-active        "#c4c4c4")
-          (bg-inactive      "#e0e0e0")
-          (border           "#9f9f9f")
-
-          ;; ef-light
-          (red "#d3303a")
-          (red-warmer "#e00033")
-          (red-cooler "#d51272")
-          (red-faint "#c24552")
-          (green "#217a3c")
-          (green-warmer "#4a7d00")
-          (green-cooler "#008858")
-          (green-faint "#61756c")
-          (yellow "#a45f22")
-          (yellow-warmer "#b6532f")
-          (yellow-cooler "#b65050")
-          (yellow-faint "#a65f6a")
-          (blue "#3740cf")
-          (blue-warmer "#4250ef")
-          (blue-cooler "#065fff")
-          (blue-faint "#4f54aa")
-          (magenta "#ba35af")
-          (magenta-warmer "#cf25aa")
-          (magenta-cooler "#6052cf")
-          (magenta-faint "#af5a80")
-          (cyan "#1f6fbf")
-          (cyan-warmer "#3f6faf")
-          (cyan-cooler "#1f77bb")
-          (cyan-faint "#506fa0")
-
-          (bg-red-intense "#ff8f88")
-          (bg-green-intense "#9adf90")
-          (bg-yellow-intense "#fac200")
-          (bg-blue-intense "#cbcfff")
-          (bg-magenta-intense "#df8fff")
-          (bg-cyan-intense "#88c8ff")
-
-          (bg-red-subtle "#ffcfbf")
-          (bg-green-subtle "#b3fabf")
-          (bg-yellow-subtle "#fff576")
-          (bg-blue-subtle "#ccdfff")
-          (bg-magenta-subtle "#ffddff")
-          (bg-cyan-subtle "#bfefff")
-
-          (bg-added "#d0f0d0")
-          (bg-added-faint "#e5ffe5")
-          (bg-added-refine "#b2e8be")
-          (fg-added "#005000")
-
-          (bg-changed "#f4e8bd")
-          (bg-changed-faint "#f9efcb")
-          (bg-changed-refine "#efd299")
-          (fg-changed "#553d00")
-
-          (bg-removed "#ffd8d5")
-          (bg-removed-faint "#ffe9e9")
-          (bg-removed-refine "#f3b5af")
-          (fg-removed "#8f1313")
-
-          (bg-mode-line-active "#b7c7ff")
-          (fg-mode-line-active "#151515")
-          (bg-completion "#bfe8ff")
-          (bg-hover "#aaeccf")
-          (bg-hover-secondary "#ccbfff")
-          (bg-hl-line "#e4efd8")
-          (bg-paren-match "#dfa0f3")
-          (bg-err "#ffd5ea") ; check with err
-          (bg-warning "#ffeabb") ; check with warning
-          (bg-info "#d0efda")
-          ;; ef-light
-
-          ;; (blue-cooler      "#9EECFF") ;; Blue 1
-          ;; (blue             "#3094FF") ;; Blue 2
-          ;; (blue-warmer      "#1A61FE") ;; Blue 3
-          ;; (blue-intense     "#0527FC") ;; Blue 4
-          ;; (blue-faint       "#212183") ;; Blue 5
-
-
-          ;; Uncommon accent foregrounds
-          ;; (orange           "#bc4c00")
-          (orange           "#D67200") ;; github Lime 5
-          (yellow-light     "#fff8c5")  ;; 黄色
-
-          ;; Special purpose
-          (bg-region         yellow-light)
-          (bg-tab-current    bg-main)
-          (bg-hover          bg-cyan-intense)
-          ;; General mappings
-          (cursor            fg-dim)
-
-          ;; Code mappings
-          (comment           fg-dim)
-          (operator          blue-faint)
-          (keyword           orange) ;; オレンジ
-          (builtin           cyan-intense)
-          ;; (builtin           fg-main)
-          ;; (builtin           orange)
-          (variable          fg-main)
-          (type              fg-main)
-
-          (property          blue-warmer)
-          (string            fg-alt)
-          (fnname            blue-warmer)
-
-          ;; Patern matches
-          (bg-paren-match    bg-cyan-intense)
-
-          ;; Accent mappings
-          ;; (accent-0 cyan-intense)
-          ;; (accent-0 bg-cyan-intense)
-          (accent-0 orange)
-          (accent-1 cyan-intense)
-          (accent-2 cyan-intense)
-          (accent-3 red-cooler)
-
-          ;; Completion mappings
-          ;; (fg-completion-match-0 cyan-intense)
-          ;; Prompt mappings
-          ;; (fg-prompt orange)
-          ))
-  (custom-set-faces
-   '(font-lock-property-use-face ((t (:foreground "#3548cf"))))) ;; blue-warmer: #3548cf
-
-  ;; (modus-themes-load-theme 'modus-operandi-deuteranopia)
-  (modus-themes-load-theme 'modus-operandi)
-  )
+;; (use-package modus-themes
+;;   :ensure t
+;;   :demand t
+;;   :init
+;;   ;; (modus-themes-include-derivatives-mode 1)
+;;   :config
+;;   (setq modus-themes-mixed-fonts t
+;;         modus-themes-variable-pitch-ui t
+;;         modus-themes-italic-constructs t
+;;         modus-themes-bold-constructs t
+;;         modus-themes-completions '((t . (bold)))
+;;         modus-themes-prompts '(bold)
+;;         modus-themes-headings
+;;         '((agenda-structure . (variable-pitch light 2.2))
+;;           (agenda-date . (variable-pitch regular 1.3))
+;;           (t . (regular 1.15))))
+;;
+;;   (setq modus-themes-bold-constructs nil) ;; boldを無効化
+;;   (setq modus-themes-common-palette-overrides
+;;         '(
+;;           ;; --- GitHub Light ---
+;;           ;; Basic values
+;;           (bg-main          "#ffffff")
+;;           (bg-dim           "#f2f2f2")
+;;           (fg-main          "#24292f") ;; default #000000"
+;;           (fg-dim           "#595959")
+;;           (fg-alt           "#193668")
+;;           (bg-active        "#c4c4c4")
+;;           (bg-inactive      "#e0e0e0")
+;;           (border           "#9f9f9f")
+;;
+;;           ;; (blue-cooler      "#9EECFF") ;; Blue 1
+;;           ;; (blue             "#3094FF") ;; Blue 2
+;;           ;; (blue-warmer      "#1A61FE") ;; Blue 3
+;;           ;; (blue-intense     "#0527FC") ;; Blue 4
+;;           ;; (blue-faint       "#212183") ;; Blue 5
+;;
+;;
+;;           ;; Uncommon accent foregrounds
+;;           ;; (orange           "#bc4c00")
+;;           (orange           "#D67200") ;; github Lime 5
+;;           (yellow-light     "#fff8c5")  ;; 黄色
+;;
+;;           ;; Special purpose
+;;           (bg-region         yellow-light)
+;;           (bg-tab-current    bg-main)
+;;           (bg-hover          bg-cyan-intense)
+;;           ;; General mappings
+;;           (cursor            fg-dim)
+;;
+;;           ;; Code mappings
+;;           (comment           fg-dim)
+;;           (operator          blue-faint)
+;;           (keyword           orange) ;; オレンジ
+;;           (builtin           cyan-intense)
+;;           ;; (builtin           fg-main)
+;;           ;; (builtin           orange)
+;;           (variable          fg-main)
+;;           (type              fg-main)
+;;
+;;           (property          blue-warmer)
+;;           (string            fg-alt)
+;;           (fnname            blue-warmer)
+;;
+;;           ;; Patern matches
+;;           (bg-paren-match    bg-cyan-intense)
+;;
+;;           ;; Accent mappings
+;;           ;; (accent-0 cyan-intense)
+;;           ;; (accent-0 bg-cyan-intense)
+;;           (accent-0 orange)
+;;           (accent-1 cyan-intense)
+;;           (accent-2 cyan-intense)
+;;           (accent-3 red-cooler)
+;;
+;;           ;; Completion mappings
+;;           ;; (fg-completion-match-0 cyan-intense)
+;;           ;; Prompt mappings
+;;           ;; (fg-prompt orange)
+;;           ))
+;;   (custom-set-faces
+;;    '(font-lock-property-use-face ((t (:foreground "#3548cf"))))) ;; blue-warmer: #3548cf
+;;
+;;   ;; (modus-themes-load-theme 'modus-operandi-deuteranopia)
+;;   (modus-themes-load-theme 'modus-operandi)
+;;   )
 
 
 
@@ -1083,7 +1059,8 @@
                '(jtsx-tsx-mode . my/eglot-ts-server-path))
   (add-to-list 'eglot-server-programs
                '(jtsx-jsx-mode . my/eglot-ts-server-path))
-
+  (add-to-list 'eglot-server-programs
+               '(jtsx-typescript-mode . ("typescript-language-server" "--stdio" "--log-level" "1")))
   (add-to-list 'eglot-server-programs
                `(elixir-mode . (,(expand-file-name
                                   (concat user-emacs-directory
@@ -1880,6 +1857,9 @@
 (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
 ;;; -----------------------------------------
 
+;;; --------- json ------------------------
+(add-to-list 'auto-mode-alist '("\\.json\\'" . json-ts-mode))
+;;; -----------------------------------------
 
 
 ;;; --------- format ------------------------

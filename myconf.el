@@ -158,7 +158,10 @@ Each entry is a directory name like \"app\" or \"frontend\"."
     ;; project_root/appも追加
     (my/prepend-node-modules-bin-to-path (concat (my/project-root) "app"))
     ;; (setq-local flymake-eslint-project-root (my/project-root))
-    (flymake-eslint-enable)
+
+    (if (executable-find "eslint")
+        (flymake-eslint-enable)
+      )
     )
 
    ;; python用
@@ -324,6 +327,70 @@ Each entry is a directory name like \"app\" or \"frontend\"."
              (= (nth 4 created-date) (nth 4 now-date))   ;; month
              (= (nth 5 created-date) (nth 5 now-date))))))) ;; year
 ;;; ------------- org helper -----------------
+
+
+
+;; ------------- neo tree -----------------
+;; 1) ハイライト用 face（好きに調整）
+(defface my/neotree-current-file-face
+  '((t :inherit hl-line))
+  "Face for highlighting current buffer's file in NeoTree.")
+
+(defvar-local my/neotree-current-file--ov nil
+  "Overlay used to highlight current buffer's file in NeoTree.")
+
+(defun my/neotree--clear-highlight ()
+  (when (overlayp my/neotree-current-file--ov)
+    (delete-overlay my/neotree-current-file--ov))
+  (setq my/neotree-current-file--ov nil))
+
+(defun my/neotree--line-for-path (path)
+  "Return 1-based line number in NeoTree buffer for PATH, or nil."
+  (when (and (boundp 'neo-buffer--node-list)
+             (vectorp neo-buffer--node-list)
+             path)
+    (let ((i 0)
+          (len (length neo-buffer--node-list))
+          found)
+      (while (and (< i len) (not found))
+        (let ((p (aref neo-buffer--node-list i)))
+          (when (and p (neo-path--file-equal-p p path))
+            (setq found (1+ i))))
+        (setq i (1+ i)))
+      found)))
+
+(defun my/neotree-highlight-current-buffer-file ()
+  "Highlight the node that corresponds to current buffer's file, without moving point."
+  (let ((path (buffer-file-name (window-buffer (selected-window)))))
+    ;; NeoTreeが無い / ファイルじゃないなら消すだけ
+    (neo-global--with-buffer
+      (my/neotree--clear-highlight)
+      (when (and path (neo-global--window-exists-p))
+        (let ((line (my/neotree--line-for-path path)))
+          (when line
+            (save-excursion
+              (goto-char (point-min))
+              (forward-line (1- line))
+              (setq my/neotree-current-file--ov
+                    (make-overlay (line-beginning-position)
+                                  (line-end-position)))
+              (overlay-put my/neotree-current-file--ov
+                           'face 'my/neotree-current-file-face)
+              ;; 他の overlay より上に出したい場合
+              (overlay-put my/neotree-current-file--ov 'priority 1000))))))))
+
+;; 2) 更新タイミング
+;; - NeoTreeの再描画後（neo-buffer--refresh）に必ず再付与
+(advice-add 'neo-buffer--refresh :after
+            (lambda (&rest _)
+              ;; refresh は neotree バッファで動くので、そのままハイライト更新してよい
+              (my/neotree-highlight-current-buffer-file)))
+
+;; - バッファ切り替え・ウィンドウ移動で更新したい場合
+(add-hook 'buffer-list-update-hook #'my/neotree-highlight-current-buffer-file)
+;; ------------- neo tree -----------------
+
+
 (message "loaded myconf.el")
 
 ;;; myconf.el ends here

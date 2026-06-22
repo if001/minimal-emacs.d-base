@@ -189,68 +189,75 @@
 
 ;;; ------------- theme -------------------
 (setq start-time (current-time))
+(minimal-emacs-load-user-init "mythemes.el")
 
-;; ;; github theme
-;; (setq overwrite-palette '(
-;;           ;; Basic value
-;;           (bg-main          "#ffffff")
-;;           (bg-dim           "#f2f2f2")
-;;           (fg-main          "#24292f") ;; default #000000"
-;;           (fg-dim           "#595959")
-;;           (fg-alt           "#193668")
-;;           ;; (bg-active        "#c4c4c4")
-;;           ;; (bg-inactive      "#e0e0e0")
-;;           ;; (border           "#9f9f9f")
-;;
-;;           ;; Uncommon accent foregrounds
-;;           ;; (orange           "#bc4c00")
-;;           (orange           "#D67200") ;; github Lime 5
-;;           (yellow-light     "#fff8c5")  ;; 黄色
-;;
-;;           ;; Special purpose
-;;           (bg-region         yellow-light)
-;;           (bg-tab-current    bg-main)
-;;           ;; (bg-tab-bar        bg-alt)
-;;           (bg-tab-bar        bg-active)
-;;           (bg-tab-other      bg-active)
-;;
-;;           ;; Code mappings
-;;           (comment           fg-dim)
-;;           (operator          blue-faint)
-;;           (keyword           orange) ;; オレンジ
-;;           ;; (builtin           cyan-intense)
-;;           ;; (builtin           fg-main)
-;;           ;; (builtin           orange)
-;;           (variable          fg-main)
-;;           (type              fg-main)
-;;           (property          blue-warmer)
-;;           (string            fg-alt)
-;;           (fnname            blue-warmer)
-;;
-;;           ;; General mappings
-;;           (cursor            fg-dim)
-;;           ))
-;;
-;; (use-package ef-themes
+(use-package ef-themes
+  :ensure t
+  ;; :init
+  ;; (ef-themes-take-over-modus-themes-mode 1)
+  :config
+  (setq ef-themes-mixed-fonts t
+        ef-themes-variable-pitch-ui t)
+  ;; (modus-themes-load-theme 'ef-melissa-light)
+  (modus-themes-load-theme 'ef-duo-light)
+  (custom-set-faces
+   '(font-lock-property-use-face ((t (:foreground "#3548cf"))))
+   '(corfu-default ((t (:background nil))))
+   '(corfu-current ((t (:background nil))))
+   '(corfu--cbar ((t (:background nil))))
+   ;; workspace-hudとspacious-paddingを合わせて使うと,hudにpaddingが表示されるので背景色と合わせておく
+   '(child-frame-border ((t (:background nil))))
+   )
+  :custom
+  ;; (ef-melissa-light-palette-overrides overwrite-palette)
+  ;; (ef-duo-light-palette-overrides github-theme-palette)
+  ;; (ef-duo-light-palette-overrides nord-theme-palette)
+  (ef-duo-light-palette-overrides nano-theme-palette)
+  ;; (ef-duo-light-palette-overrides nano2-theme-palette)
+  )
+
+;; (use-package nano
 ;;   :ensure t
-;;   ;; :init
-;;   ;; (ef-themes-take-over-modus-themes-mode 1)
+;;   :straight (nano :type git :host github :repo "rougier/nano-emacs")
 ;;   :config
-;;   (setq ef-themes-mixed-fonts t
-;;         ef-themes-variable-pitch-ui t)
-;;   ;; (modus-themes-load-theme 'ef-melissa-light)
-;;   (modus-themes-load-theme 'ef-duo-light)
-;;   (custom-set-faces
-;;    '(font-lock-property-use-face ((t (:foreground "#3548cf"))))
-;;    '(corfu-default ((t (:background nil))))
-;;    '(corfu-current ((t (:background nil))))
-;;    '(corfu--cbar ((t (:background nil))))
-;;    ;; workspace-hudとspacious-paddingを合わせて使うと,hudにpaddingが表示されるので背景色と合わせておく
-;;    '(child-frame-border ((t (:background nil))))
-;;    )
+;;   ;; neotreeの場合mode lineを非表示
+;;   (add-hook 'neotree-mode-hook
+;;             (lambda ()
+;;               (setq-local header-line-format nil)))
+;;   (add-hook 'imenu-list-major-mode
+;;             (lambda ()
+;;               (setq-local header-line-format nil)))
+;;   ;; (setq nano-font-family-monospaced my/font-jp)
+;;   ;; (setq nano-font-family-monospaced "Roboto Mono Light 14")
+;;   ;; (setq nano-font-family-proportional my/font-jp)
+;;   (setq nano-font-size 12)
+;;   )
+
+;; (use-package nano-vertico
+;;   :ensure t
+;;   ;; :after (nano vertico)
+;;   :after (vertico)
+;;   :straight (nano-vertico :type git :host github :repo "rougier/nano-vertico")
 ;;   :custom
-;;   ;;(ef-melissa-light-palette-overrides overwrite-palette)
-;;   (ef-duo-light-palette-overrides overwrite-palette)
+;;   (nano-vertico-symbols '(
+;;                            (pill-left . "")
+;;                            (pill-right . ">>")
+;;                            (selection . ">")
+;;                            (line       . ?╴)
+;;                            ))
+;;   :config
+;;   (nano-vertico-mode 1)
+;;   ;; (with-eval-after-load 'vertico
+;;   ;;   (setq vertico-count 20) ;; 候補リスト20
+;;   ;;   (setq vertico-resize nil)
+;;   ;;   )
+;;   ;; nano-verticoと併用する設定
+;;   ;; nano-vertico は vertico--display-candidates を :override する。
+;;   ;; これが vertico-posframe の表示処理を潰すため外す。
+;;   ;; これにより nano-vertico--format-candidate の見た目調整は残り、
+;;   ;; posframe 表示は vertico-posframe に任せる。
+;;   ;; (advice-remove 'vertico--display-candidates
+;;   ;;                #'nano-vertico-display-candidates)
 ;;   )
 
 (use-package nano
@@ -308,14 +315,14 @@
 
 ;; (use-package vertico-posframe-preview
 ;;   :ensure t
-;;   :after (vertico nano-vertico)
-;;   ;;:after (vertico)
+;;   ;; :after (vertico nano-vertico)
+;;   :after (vertico)
 ;;   :straight (vertico-posframe-preview :type git :host github :repo "kn66/vertico-posframe-preview")
 ;;   :config
 ;;   (vertico-posframe-mode 1)
 ;;   (vertico-posframe-preview-mode 1)
 ;;   )
-;; nano-verticoと併用する設定
+;; ;; nano-verticoと併用する設定
 ;; (defun my/nano-vertico-disable-display-override ()
 ;;   (advice-remove 'vertico--display-candidates
 ;;                  #'nano-vertico-display-candidates))
@@ -325,12 +332,23 @@
 
 
 ;; nano-emacsを使う場合不要
-;; (use-package doom-modeline
-;;   :ensure t
-;;   :hook (after-init . doom-modeline-mode)
-;;   ;; :config
-;;   ;; (setq doom-modeline-minor-modes t) ;; minor-modeも表示する
-;;   )
+(use-package doom-modeline
+  :ensure t
+  :hook (after-init . doom-modeline-mode)
+  ;; :config
+  ;; (setq doom-modeline-minor-modes t) ;; minor-modeも表示する
+  :custom
+  (doom-modeline-buffer-encoding nil) ;; 改行コード（LF）や文字コード（UTF-8）を非表示にする
+  (doom-modeline-line-number nil)         ;; 行番号を非表示
+  (doom-modeline-column-number nil)       ;; 列番号を非表示
+  (doom-modeline-percent-position nil)
+  )
+
+;; マイナーモードをバーガーメニューで表示
+;; (use-package minions
+;;   :init
+;;   (minions-mode +1))
+
 (use-package hide-mode-line
   :ensure nil
   :hook
@@ -373,13 +391,25 @@
   (unless spacious-padding-mode
     (spacious-padding-mode 1)))
 
+  ;; Read the doc string of `spacious-padding-subtle-mode-line' as it
+  ;; is very flexible and provides several examples.
+  (setq spacious-padding-subtle-mode-line
+        `( :mode-line-active 'default
+           :mode-line-inactive vertical-border))
+
+  (spacious-padding-mode +1))
 (let ((elapsed (float-time (time-subtract (current-time) start-time))))
   (message "theme: %.3f" elapsed))
+
 
 ;; (use-package breadcrumb
 ;;   :straight (breadcrumb :type git :host nil :repo "https://github.com/joaotavora/breadcrumb.git")
 ;;   :config
 ;;   (breadcrumb-mode +1))
+
+
+(let ((elapsed (float-time (time-subtract (current-time) start-time))))
+  (message "theme: %.3f" elapsed))
 ;;; ------------- theme -------------------
 
 
@@ -388,54 +418,54 @@
 
 ;;; ------------- tab --------------------
 (setq package-start-time (current-time))
-;; (use-package centaur-tabs
-;;   :ensure t
-;;   :init
-;;   (centaur-tabs-mode t) ;; グローバルにCentaur Tabsを有効にする
-;;   :config
-;;   (defun centaur-tabs-hide-tab (x)
-;;   "Do no to show buffer X in tabs."
-;;   (let ((name (format "%s" x)))
-;;     (or
-;;      ;; Current window is not dedicated window.
-;;      (window-dedicated-p (selected-window))
-;;
-;;      ;; Buffer name not match below blacklist.
-;;      ;; (string-prefix-p "*Flycheck" name)
-;;      ;; (string-prefix-p "*Flymake log*" name)
-;;      ;; (string-prefix-p "*Warnings*" name)
-;;      ;; (string-prefix-p "*Messages*" name)
-;;      ;; (string-prefix-p "*lsp" name)
-;;      ;; (string-prefix-p "*pylsp*" name)
-;;      ;; (string-prefix-p "*pylsp::stderr*" name)
-;;
-;;      ;; Is not magit buffer.
-;;      (and (string-prefix-p "magit" name)
-;; 	  (not (file-name-extension name)))
-;;      )))
-;;   :custom
-;;   ;; (centaur-tabs-style "wave")
-;;   (centaur-tabs-height 32)
-;;
-;;   ;; icons
-;;   (centaur-tabs-set-icons t)
-;;   ;; (centaur-tabs-plain-icons t)
-;;   (centaur-tabs-icon-type 'nerd-icons)
-;;
-;;   ;; To display an underline over the selected tab:
-;;   ;; (centaur-tabs-set-bar 'over)
-;;   (centaur-tabs-set-bar 'under)
-;;   (x-underline-at-descent-line t)
-;;
-;;   (centaur-tabs-set-close-button nil)
-;;
-;;   ;; Customize the modified marker
-;;   (centaur-tabs-set-modified-marker t)
-;;   ;; (centaur-tabs-modified-marker "*")
-;;   :bind
-;;   ("M-[" . centaur-tabs-backward)
-;;   ("M-]" . centaur-tabs-forward)
-;;   )
+(use-package centaur-tabs
+  :ensure t
+  :init
+  (centaur-tabs-mode t) ;; グローバルにCentaur Tabsを有効にする
+  :config
+  (defun centaur-tabs-hide-tab (x)
+  "Do no to show buffer X in tabs."
+  (let ((name (format "%s" x)))
+    (or
+     ;; Current window is not dedicated window.
+     (window-dedicated-p (selected-window))
+
+     ;; Buffer name not match below blacklist.
+     ;; (string-prefix-p "*Flycheck" name)
+     ;; (string-prefix-p "*Flymake log*" name)
+     ;; (string-prefix-p "*Warnings*" name)
+     ;; (string-prefix-p "*Messages*" name)
+     ;; (string-prefix-p "*lsp" name)
+     ;; (string-prefix-p "*pylsp*" name)
+     ;; (string-prefix-p "*pylsp::stderr*" name)
+
+     ;; Is not magit buffer.
+     (and (string-prefix-p "magit" name)
+	  (not (file-name-extension name)))
+     )))
+  :custom
+  ;; (centaur-tabs-style "wave")
+  (centaur-tabs-height 40)
+
+  ;; icons
+  (centaur-tabs-set-icons t)
+  ;; (centaur-tabs-plain-icons t)
+  (centaur-tabs-icon-type 'nerd-icons)
+
+  ;; To display an underline over the selected tab:
+  ;; (centaur-tabs-set-bar 'over)
+  (centaur-tabs-set-bar 'under)
+  (x-underline-at-descent-line t)
+
+  (centaur-tabs-set-close-button nil)
+
+  ;; Customize the modified marker
+  (centaur-tabs-set-modified-marker t)
+  ;; (centaur-tabs-modified-marker "*")
+  :bind
+  ("M-[" . centaur-tabs-backward)
+  ("M-]" . centaur-tabs-forward)
+  )
 
 (let ((elapsed (float-time (time-subtract (current-time) start-time))))
   (message "tab: %.3f" elapsed))
@@ -754,8 +784,8 @@
   (vertico-count 20) ;; 候補リスト20
   ;; (vertico-resize t) ;; ウィンドウを自動でリサイズ（オプション）
   :config
-  (vertico-mode))
-
+  (vertico-mode 1)
+  )
 
 ;; -- でオプション指定
 ;; 特定のファイルのみを対象
@@ -830,6 +860,7 @@
                '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
                  nil
                  (window-parameters (mode-line-format . none))))
+  )
 
   ;; vertico-buffer-frameを使う場合の設定
   ;; action を minibuffer completion で選ぶ
@@ -1712,6 +1743,7 @@
 ;;; -------- magit ---------------------------------
 ;; branch list(tag list):  magit-status magit-show-refs
 (setq package-start-time (current-time))
+(setq magit-format-file-function #'magit-format-file-nerd-icons)
 ;; (use-package magit
 ;;     :straight (magit :type git :host nil :repo "https://github.com/magit/magit.git" :tag "v4.4.2")
 ;;   )
@@ -1816,6 +1848,17 @@
   :bind
   ("C-h" . treesit-fold-toggle)
   )
+
+
+;; (use-package smart-jump :ensure t)
+;;
+;; (use-package jumplist
+;;   :ensure nil
+;;   :straight '(jumplist :type git :host github :repo "ganmacs/jumplist")
+;;   :config
+;;   (global-set-key (kbd "C-<") 'jumplist-previous)
+;;   (global-set-key (kbd "C->") 'jumplist-next)
+;;   )
 ;;; -------- code ---------------------------------
 
 
@@ -2130,6 +2173,7 @@
   :ensure t
   :straight (acp :type git :host nil :repo "https://github.com/xenodium/acp.el.git")
   )
+(add-to-list 'exec-path "./target/debug/") ;; codex-acp用
 (use-package agent-shell
   :ensure t
   :after acp
@@ -2142,9 +2186,15 @@
    ;; (opencode-agent . "npm install -g https://github.com/anomalyco/opencode")
    ;; (gemini-cli . "npm install -g @google/gemini-cli")
    ;; (copilot-cli . "npm install -g @github/copilot")
+   ;; (codex . "npx @zed-industries/codex-acp")
    )
   )
 ;;; -----------------------------------------
+;; (message "4: %s" file-name-handler-alist)
+;; tramp-modeを強制設定
+;; file-name-handler-alistにtramp-の項目が含まれる必要がある
+;; 設定されていないのでこれで無理やり設定する
+;; (tramp-register-file-name-handlers)
 
 (use-package ghostel
   :straight (:type git :host nil :repo "https://github.com/dakra/ghostel")
@@ -2154,5 +2204,7 @@
 (minimal-emacs-load-user-init "myconf.el")
 (minimal-emacs-load-user-init "local-conf.el")
 (minimal-emacs-load-user-init "mythemes.el")
+(let ((elapsed (float-time (time-subtract (current-time) start-time))))
+  (message "done: %.3f" elapsed))
 
 ;;; post-init.el ends here

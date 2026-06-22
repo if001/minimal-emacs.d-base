@@ -20,3 +20,4 @@ tramp-autosave/
 projects
 bookmarks
 *.elc
+/.agent-shell/

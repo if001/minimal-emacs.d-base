@@ -144,14 +144,21 @@ Each entry is a directory name like \"app\" or \"frontend\"."
         (setenv "PATH" new)))))
 
 
-(defun my/enable-prettier-on-save ()
+(defun my/enable-formatter-on-save ()
   ;; project_rootを追加
   (my/prepend-node-modules-bin-to-path (my/project-root))
   ;; project_root/appも追加
   (my/prepend-node-modules-bin-to-path (concat (my/project-root) "app"))
 
-  (when (executable-find "prettier")
-    (add-hook 'before-save-hook #'global-prettier-format-buffer nil t)))
+  (cond
+   ;; prettierはglobal install想定
+   ((executable-find "prettier")
+    (add-hook 'before-save-hook #'global-prettier-format-buffer nil t))
+   ;; biomeはproject local install想定
+   ((executable-find "biome")
+    (add-hook 'before-save-hook #'global-biome-format-buffer nil t))
+   )
+  )
 ;;; -------------node_modules/.bin/prettier実行用 -----------------
 
 
@@ -346,64 +353,112 @@ Each entry is a directory name like \"app\" or \"frontend\"."
 
 
 
-;; ------------- neo tree -----------------
-;; 1) ハイライト用 face（好きに調整）
-(defface my/neotree-current-file-face
-  '((t :inherit hl-line))
-  "Face for highlighting current buffer's file in NeoTree.")
-
-(defvar-local my/neotree-current-file--ov nil
-  "Overlay used to highlight current buffer's file in NeoTree.")
-
-(defun my/neotree--clear-highlight ()
-  (when (overlayp my/neotree-current-file--ov)
-    (delete-overlay my/neotree-current-file--ov))
-  (setq my/neotree-current-file--ov nil))
-
-(defun my/neotree--line-for-path (path)
-  "Return 1-based line number in NeoTree buffer for PATH, or nil."
-  (when (and (boundp 'neo-buffer--node-list)
-             (vectorp neo-buffer--node-list)
-             path)
-    (let ((i 0)
-          (len (length neo-buffer--node-list))
-          found)
-      (while (and (< i len) (not found))
-        (let ((p (aref neo-buffer--node-list i)))
-          (when (and p (neo-path--file-equal-p p path))
-            (setq found (1+ i))))
-        (setq i (1+ i)))
-      found)))
-
-(defun my/neotree-highlight-current-buffer-file ()
-  "Highlight the node that corresponds to current buffer's file, without moving point."
-  (let ((path (buffer-file-name (window-buffer (selected-window)))))
-    ;; NeoTreeが無い / ファイルじゃないなら消すだけ
-    (neo-global--with-buffer
-      (my/neotree--clear-highlight)
-      (when (and path (neo-global--window-exists-p))
-        (let ((line (my/neotree--line-for-path path)))
-          (when line
-            (save-excursion
-              (goto-char (point-min))
-              (forward-line (1- line))
-              (setq my/neotree-current-file--ov
-                    (make-overlay (line-beginning-position)
-                                  (line-end-position)))
-              (overlay-put my/neotree-current-file--ov
-                           'face 'my/neotree-current-file-face)
-              ;; 他の overlay より上に出したい場合
-              (overlay-put my/neotree-current-file--ov 'priority 1000))))))))
-
-;; ;; 2) 更新タイミング
-;; ;; - NeoTreeの再描画後（neo-buffer--refresh）に必ず再付与
-;; (advice-add 'neo-buffer--refresh :after
-;;             (lambda (&rest _)
-;;               ;; refresh は neotree バッファで動くので、そのままハイライト更新してよい
-;;               (my/neotree-highlight-current-buffer-file)))
+;; treemacsを使うと以下は不要
+;; ;; ------------- neo tree -----------------
+;; ;; 1) ハイライト用 face（好きに調整）
+;; (defface my/neotree-current-file-face
+;;   '((t :inherit hl-line))
+;;   "Face for highlighting current buffer's file in NeoTree.")
 ;;
-;; ;; - バッファ切り替え・ウィンドウ移動で更新したい場合
-;; (add-hook 'buffer-list-update-hook #'my/neotree-highlight-current-buffer-file)
+;; (defvar-local my/neotree-current-file--ov nil
+;;   "Overlay used to highlight current buffer's file in NeoTree.")
+;;
+;; (defun my/neotree--clear-highlight ()
+;;   (when (overlayp my/neotree-current-file--ov)
+;;     (delete-overlay my/neotree-current-file--ov))
+;;   (setq my/neotree-current-file--ov nil))
+;;
+;; (defun my/neotree--line-for-path (path)
+;;   "Return 1-based line number in NeoTree buffer for PATH, or nil."
+;;   (when (and (boundp 'neo-buffer--node-list)
+;;              (vectorp neo-buffer--node-list)
+;;              path)
+;;     (cl-loop for i from 0 below (length neo-buffer--node-list)
+;;              for p = (aref neo-buffer--node-list i)
+;;              when (and p (neo-path--file-equal-p p path))
+;;              return (1+ i))))
+;;
+;; (defun my/neotree-highlight-current-buffer-file (&optional path)
+;;   "Highlight PATH in NeoTree without moving point.
+;;
+;; PATHがnilの場合は、選択中のウィンドウが表示している
+;; ファイルを対象にする。"
+;;   (let ((path (or path
+;;                   (buffer-file-name (window-buffer (selected-window))))))
+;;     (neo-global--with-buffer
+;;       (my/neotree--clear-highlight)
+;;       (when-let* ((line (and path (my/neotree--line-for-path path))))
+;;         (save-excursion
+;;           (goto-char (point-min))
+;;           (forward-line (1- line))
+;;           (setq my/neotree-current-file--ov
+;;                 (make-overlay (line-beginning-position)
+;;                               (line-end-position)
+;;                               nil nil nil))
+;;           (overlay-put my/neotree-current-file--ov
+;;                        'face 'my/neotree-current-file-face)
+;;           (overlay-put my/neotree-current-file--ov
+;;                        'priority 1000))))))
+;;
+;; ;; ;; 2) 更新タイミング
+;; ;; ;; - NeoTreeの再描画後（neo-buffer--refresh）に必ず再付与
+;; ;; (advice-add 'neo-buffer--refresh :after
+;; ;;             (lambda (&rest _)
+;; ;;               ;; refresh は neotree バッファで動くので、そのままハイライト更新してよい
+;; ;;               (my/neotree-highlight-current-buffer-file)))
+;; ;;
+;; ;; ;; - バッファ切り替え・ウィンドウ移動で更新したい場合
+;; ;; (add-hook 'buffer-list-update-hook #'my/neotree-highlight-current-buffer-file)
+;;
+;; (defvar my/neotree-follow--last-state nil
+;;   "Last NeoTree root and selected file processed by follow logic.")
+;;
+;; (defvar my/neotree-follow--running nil
+;;   "Non-nil while NeoTree follow processing is running.")
+;;
+;; (defun my/neotree--current-root ()
+;;   "Return the current NeoTree root directory."
+;;   (neo-global--with-buffer
+;;     neo-buffer--start-node))
+;;
+;; (defun my/neotree-follow-current-file ()
+;;   "Expand NeoTree to the file shown in the selected window.
+;;
+;; NeoTreeのルート外にあるファイルは無視する。
+;; NeoTreeウィンドウへフォーカスは移動しない。"
+;;   (unless my/neotree-follow--running
+;;        (let* ((window (selected-window))
+;;             (path
+;;              (and (not (eq window neo-global--window))
+;;                   (buffer-file-name (window-buffer window))))
+;;             (abs-path
+;;              (and path (expand-file-name path)))
+;;             (root
+;;              (and (neo-global--window-exists-p)
+;;                   (my/neotree--current-root)))
+;;             ;; rootも含めることで、NeoTreeのroot変更時にも再評価する
+;;             (state (list root abs-path)))
+;;
+;;       ;; post-command-hookは頻繁に呼ばれるため、
+;;       ;; ファイルまたはrootが変化したときだけ処理する
+;;        (unless (equal state my/neotree-follow--last-state)
+;;          (setq my/neotree-follow--last-state state)
+;;
+;;          (when (and root
+;;                     abs-path
+;;                     (file-exists-p abs-path)
+;;                     ;; root外のファイルでNeoTreeのrootが
+;;                     ;; 勝手に変更されないようにする
+;;                     (neo-global--file-in-root-p abs-path))
+;;            (let ((my/neotree-follow--running t))
+;;              ;; neotree-findはNeoTreeウィンドウを選択するので、
+;;              ;; 実行後に元のウィンドウへ戻す
+;;              (save-selected-window
+;;                (neotree-find abs-path))
+;;
+;;              ;; neotree-findによるツリー再描画後に
+;;              ;; オーバーレイを設定する
+;;              (my/neotree-highlight-current-buffer-file abs-path)))))))
 ;; ------------- neo tree -----------------
 
 
@@ -582,6 +637,13 @@ Each active project preview uses this port or a higher unused port."
     (dolist (root roots)
       (my/preview-markdown--stop-root root))))
 
+(defun my/preview-markdown--deactivate-buffers ()
+  (dolist (buffer (buffer-list))
+    (with-current-buffer buffer
+      (when my/preview-markdown-project-mode
+        (setq-local my/preview-markdown-project-mode nil)
+        (force-mode-line-update)))))
+
 (defun my/preview-markdown--sentinel (root proc _event)
   (let ((state (my/preview-markdown--state root)))
     (when (and state
@@ -719,7 +781,10 @@ Each active project preview uses this port or a higher unused port."
 (defun my/preview-markdown-stop ()
   "Stop all go-grip processes managed by my-preview-markdown."
   (interactive)
-  (my/preview-markdown--stop-all))
+  (setq my/preview-markdown--enabled-projects nil)
+  (my/preview-markdown--stop-all)
+  (my/preview-markdown--deactivate-buffers)
+  (my/preview-markdown--log "disabled all project previews"))
 
 ;;;###autoload
 (define-minor-mode my/preview-markdown-project-mode

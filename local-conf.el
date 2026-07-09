@@ -4,20 +4,24 @@
 ;;; code:
 
 (with-eval-after-load 'org
-  (setq memofile (yy-mm-file (concat work-directory "memo/") "memo"))
-  (setq taskfile (yy-mm-file (concat work-directory "memo/") "task"))
+  (defun my/get-memo-file-path ()
+    (yy-mm-file (concat work-directory "memo/") "memo"))
+  (defun my/get-task-file-path ()
+    (yy-mm-file (concat work-directory "memo/") "task"))
 
   (setq org-capture-templates
 	'(
-      ("m" "Memo" entry (file memofile)
+      ("m" "Memo" entry (file my/get-memo-file-path)
        "** %? :memo: \n:PROPERTIES:\n:CREATED: %U\n:TAG: memo\n:END:\n%i\n" :empty-lines 1 :tree-type day)
-      ("r" "Rad" entry (file memofile)
+      ("a" "acc" entry (file my/get-memo-file-path)
+       "** %? :acc: \n:PROPERTIES:\n:CREATED: %U\n:TAG: acc\n:END:\n%i\n" :empty-lines 1 :tree-type day)
+      ("r" "Rad" entry (file my/get-memo-file-path)
        "** %? :rad: \n:PROPERTIES:\n:CREATED: %U\n:TAG: rad\n:END:\n%i\n" :empty-lines 1 :tree-type day)
-      ("s" "Micro Service" entry (file memofile)
+      ("s" "Micro Service" entry (file my/get-memo-file-path)
        "** %? :microservice: \n:PROPERTIES:\n:CREATED: %U\n:TAG: microservice\n:END:\n%i\n" :empty-lines 1 :tree-type day)
-      ("p" "Posts" entry (file memofile)
+      ("p" "Posts" entry (file my/get-memo-file-path)
        "** %? :post: \n:PROPERTIES:\n:CREATED: %U\n:TAG: post\n:END:\n%i\n" :empty-lines 1 :tree-type day)
-      ("t" "Task" entry (file+datetree taskfile)
+      ("t" "Task" entry (file+datetree my/get-task-file-path)
        "** TODO %?" :empty-lines 0 :tree-type day)
       )
     )

@@ -4,18 +4,35 @@
 ;;; code:
 
 ;;; ------------- marp -----------------
+(defun my/project-root ()
+  (if-let ((proj (project-current nil)))
+      (project-root proj)
+    ;; プロジェクト外の場合は、現在のファイルのディレクトリをフォールバックとする
+    (file-name-directory (buffer-file-name))))
+
 (defun my/marp-start-server ()
-    "Start Marp server in current directory."
-    (interactive)
-    (let ((default-directory (file-name-directory (buffer-file-name))))
+  "Start Marp server in project root and open the current buffer file in browser."
+  (interactive)
+  (let* ((proj-root (my/project-root))
+         (current-file (buffer-file-name))
+         ;; プロジェクトルートからの相対パスを取得
+         (relative-path (file-relative-name current-file proj-root))
+         ;; URLエンコード等の簡易対応として、拡張子 .md を .html に変換してブラウザで開く
+         ;; (Marp server は md ファイルにアクセスすると HTML に変換して表示するため)
+         (target-url (format "http://localhost:8080/%s" relative-path)))
+
+    ;; 1. プロジェクトルートをカレントディレクトリにして Marp サーバーを起動
+    (let ((default-directory proj-root))
       (start-process-shell-command
        "marp-server"
        "*marp-server*"
-       (format "marp --allow-local-files --html --theme /Users/ac211/prog/slide/themes/base.scss --server \"%s\"" default-directory))
-      ;; (browse-url "http://localhost:8080/")
-      (xwidget-webkit-browse-url "http://localhost:8080/")
-      )
-    )
+       "marp --allow-local-files --html --server ."))
+
+    ;; 2. 少しサーバーの起動を待ってからブラウザを開く（即時開くと接続エラーになる対策）
+    (run-with-timer 1.0 nil
+                    (lambda (url)
+                      (xwidget-webkit-browse-url url))
+                    target-url)))
 
 ;; brew install pngpaste
 (defun my/save-screenshot-from-clipboard (filepath)

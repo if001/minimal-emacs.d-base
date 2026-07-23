@@ -103,7 +103,7 @@
 ;;(defvar my/font-jp "Noto Sans CJK JP")
 (defvar my/font-jp "PlemolJP35")
 
-(defvar my/font-size 12) ;; Default English font size (pt)
+(defvar my/font-size 11) ;; Default English font size (pt)
 (defvar my/font-jp-scale 1.20) ;; Scale factor applied to Japanese font to match Latin width.
 (defvar my/line-spacing 0.2) ;; 行間
 
@@ -1738,6 +1738,7 @@
 (use-package treemacs-nerd-icons
   :after (treemacs nerd-icons)
   :config
+  ;; ディレクトリの色を黒にする
   (set-face-attribute
    'treemacs-nerd-icons-file-face nil
    :inherit 'nerd-icons-black
@@ -1870,7 +1871,7 @@
   :init
   (global-diff-hl-mode 1)
   (global-diff-hl-show-hunk-mouse-mode 1)
-  ;; (diff-hl-margin-mode 1)
+  (diff-hl-margin-mode 1)
   )
 
 ;; git diffをblameで比較する

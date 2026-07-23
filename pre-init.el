@@ -1,4 +1,4 @@
-;;; package --- pre-init.el
+;;; package --- pre-init.el  -*- lexical-binding: t; -*-
 ;;; commentary:
 ;;; summary:
 ;;; code:

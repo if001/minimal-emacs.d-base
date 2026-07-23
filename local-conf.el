@@ -1,4 +1,4 @@
-;;; pacakge -- local-conf.el
+;;; pacakge -- local-conf.el  -*- lexical-binding: t; -*-
 ;;; commentary:
 ;;; summary:
 ;;; code:

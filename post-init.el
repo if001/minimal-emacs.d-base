@@ -1,4 +1,4 @@
-;;; pacakge -- pre-init.el
+;;; pacakge -- pre-init.el  -*- lexical-binding: t; -*-
 ;;; commentary:
 ;;; summary:
 ;;; code:

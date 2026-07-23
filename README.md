@@ -1,3 +1,7 @@
+this is fork from
+https://github.com/jamescherti/minimal-emacs.d
+
+
 # *minimal-emacs.d* - A Customizable Emacs `init.el` and `early-init.el` for Better Defaults and Optimized Startup
 ![Build Status](https://github.com/jamescherti/minimal-emacs.d/actions/workflows/ci.yml/badge.svg)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)

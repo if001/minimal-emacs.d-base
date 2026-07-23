@@ -2331,10 +2331,22 @@
 ;; ---------------------- shell ----------------------------
 
 
+;; ---------------------- rss ----------------------------
+(use-package elfeed
+  :ensure t
+  :bind ("C-c n r" . elfeed) ; Global shortcut to open Elfeed
+  :config
+  (setq elfeed-feeds
+        '(
+          ("https://b.hatena.ne.jp/q/%E3%83%97%E3%83%AD%E3%82%B0%E3%83%A9%E3%83%9F%E3%83%B3%E3%82%B0?target=tag&date_range=5y&users=3&sort=recent&mode=rss" hatena programming)
+          ("https://b.hatena.ne.jp/q/LLM?target=tag&date_range=5y&users=3&sort=recent&mode=rss" hatena LLM)
+          ("https://b.hatena.ne.jp/q/cloudflare?target=tag&sort=recent&users=3&mode=rss" hatena cloudflare)
+          ))
+  )
+;; ---------------------- rss ----------------------------
 
 (minimal-emacs-load-user-init "myconf.el")
 (minimal-emacs-load-user-init "local-conf.el")
-(minimal-emacs-load-user-init "mythemes.el")
 (let ((elapsed (float-time (time-subtract (current-time) start-time))))
   (message "done: %.3f" elapsed))
 

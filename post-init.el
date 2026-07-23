@@ -793,9 +793,9 @@
 
 ;; -- でオプション指定
 ;; 特定のファイルのみを対象
-;; {検索文字列} -- -g *.el
+;; {検索文字列} - -g *.el
 ;; !で反転(特定のファイル以外を対象)
-;; {検索文字列} -- -g !*.el
+;; {検索文字列} - -g !*.el
 (use-package consult
   :init
   (setq xref-show-xrefs-function #'consult-xref
@@ -813,6 +813,10 @@
   ("M-y" . consult-yank-pop) ;; kill-ring の履歴から選択
   ("C-c C-r" . consult-register)
   ("C-x C-r" . consult-recent-file)
+  :custom
+  (consult-find-args
+   "find . -not ( -path */.git -prune )") ;; findで.githubが対象から外れないようにする
+  ;; defaultは ("find . -not ( -path */.[A-Za-z]* -prune )")
   :config
   (consult-customize
    consult-recent-file :preview-key nil)

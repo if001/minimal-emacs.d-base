@@ -2319,9 +2319,17 @@
 ;; 設定されていないのでこれで無理やり設定する
 ;; (tramp-register-file-name-handlers)
 
+;; ---------------------- shell ----------------------------
+(unless
+    (or (eq system-type 'windows-nt)
+        (not (file-exists-p "/bin/zsh")))
+  (setq-default shell-file-name "/bin/zsh")
+  (setq explicit-shell-file-name "/bin/zsh"))
 (use-package ghostel
   :straight (:type git :host nil :repo "https://github.com/dakra/ghostel")
-)
+  )
+;; ---------------------- shell ----------------------------
+
 
 
 (minimal-emacs-load-user-init "myconf.el")

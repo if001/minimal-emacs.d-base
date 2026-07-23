@@ -20,3 +20,9 @@ tramp-autosave/
 projects
 bookmarks
 *.elc
+/.agent-shell/
+
+elfeed/
+org-persist/
+
+.cache/

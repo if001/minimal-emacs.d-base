@@ -1,4 +1,4 @@
-;;; pacakge -- pre-init.el
+;;; pacakge -- pre-init.el  -*- lexical-binding: t; -*-
 ;;; commentary:
 ;;; summary:
 ;;; code:
@@ -103,7 +103,7 @@
 ;;(defvar my/font-jp "Noto Sans CJK JP")
 (defvar my/font-jp "PlemolJP35")
 
-(defvar my/font-size 12) ;; Default English font size (pt)
+(defvar my/font-size 11) ;; Default English font size (pt)
 (defvar my/font-jp-scale 1.20) ;; Scale factor applied to Japanese font to match Latin width.
 (defvar my/line-spacing 0.2) ;; 行間
 
@@ -177,11 +177,11 @@
       (setq-default line-spacing my/line-spacing))))
 
 ;; 既存フレーム＆今後作成するフレームに適用
-;; (my--apply-fonts)
-;; (add-hook 'after-make-frame-functions #'my--apply-fonts)
-;; (set-face-attribute 'line-number nil
-;;                     :family my/font-eng     ; 例: "Ricty Diminished"
-;;                     :weight 'normal)
+(my--apply-fonts)
+(add-hook 'after-make-frame-functions #'my--apply-fonts)
+(set-face-attribute 'line-number nil
+                    :family my/font-eng     ; 例: "Ricty Diminished"
+                    :weight 'normal)
 ;;; ------------- font -------------------
 
 
@@ -220,6 +220,7 @@
 ;;   :ensure t
 ;;   :straight (nano :type git :host github :repo "rougier/nano-emacs")
 ;;   :config
+;;   (setq recentf-max-menu-items 200)
 ;;   ;; neotreeの場合mode lineを非表示
 ;;   (add-hook 'neotree-mode-hook
 ;;             (lambda ()
@@ -227,37 +228,36 @@
 ;;   (add-hook 'imenu-list-major-mode
 ;;             (lambda ()
 ;;               (setq-local header-line-format nil)))
-;;   ;; (setq nano-font-family-monospaced my/font-jp)
-;;   ;; (setq nano-font-family-monospaced "Roboto Mono Light 14")
-;;   ;; (setq nano-font-family-proportional my/font-jp)
+;;   (setq nano-font-family-monospaced my/font-jp)
+;;   (setq nano-font-family-proportional my/font-jp)
 ;;   (setq nano-font-size 12)
+;;   (set-face-attribute 'nano-face-strong nil
+;;                       :foreground nano-color-strong
+;;                       :weight 'light)
 ;;   )
-
+;;
 ;; (use-package nano-vertico
 ;;   :ensure t
 ;;   ;; :after (nano vertico)
 ;;   :after (vertico)
 ;;   :straight (nano-vertico :type git :host github :repo "rougier/nano-vertico")
-;;   :custom
-;;   (nano-vertico-symbols '(
-;;                            (pill-left . "")
-;;                            (pill-right . ">>")
-;;                            (selection . ">")
-;;                            (line       . ?╴)
-;;                            ))
+;;   ;; :custom
+;;   ;; (nano-vertico-symbols '(
+;;   ;;                          (pill-left . "")
+;;   ;;                          (pill-right . ">>")
+;;   ;;                          (selection . ">")
+;;   ;;                          (line       . ?╴)
+;;   ;;                          ))
 ;;   :config
 ;;   (nano-vertico-mode 1)
-;;   ;; (with-eval-after-load 'vertico
-;;   ;;   (setq vertico-count 20) ;; 候補リスト20
-;;   ;;   (setq vertico-resize nil)
-;;   ;;   )
-;;   ;; nano-verticoと併用する設定
-;;   ;; nano-vertico は vertico--display-candidates を :override する。
-;;   ;; これが vertico-posframe の表示処理を潰すため外す。
-;;   ;; これにより nano-vertico--format-candidate の見た目調整は残り、
-;;   ;; posframe 表示は vertico-posframe に任せる。
-;;   ;; (advice-remove 'vertico--display-candidates
-;;   ;;                #'nano-vertico-display-candidates)
+;;   ;; vertico-buffer-frameを使う場合の設定
+;;   ;; action を minibuffer completion で選ぶ
+;;   (setq embark-prompter #'embark-completing-read-prompter)
+;;   ;; *Embark Actions* buffer を自動表示しない
+;;   (setq embark-indicators
+;;         '(embark-minimal-indicator
+;;           embark-highlight-indicator
+;;           embark-isearch-highlight-indicator))
 ;;   )
 
 ;; (use-package vertico-buffer-frame
@@ -288,6 +288,7 @@
 ;; (with-eval-after-load 'nano-vertico
 ;;   (add-hook 'nano-vertico-mode-hook
 ;;             #'my/nano-vertico-disable-display-override))
+
 
 ;; nano-emacsを使う場合不要
 (use-package doom-modeline
@@ -326,34 +327,89 @@
 
 (use-package nerd-icons-corfu
   :straight (nerd-icons-corfu :type git :host nil :repo "https://github.com/LuigiPiucco/nerd-icons-corfu")
-  :after corfu nerd-icons
+  :after (corfu nerd-icons)
   :config
-  (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
+  (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter)
+
+  ;; path補完時にアイコンが文字化けするのを修正
+  (defface my/nerd-icons-corfu-file-face
+    '((t
+       :family "Symbols Nerd Font Mono"
+       :inherit font-lock-string-face))
+    "Face for file icons in Corfu.")
+
+  (defface my/nerd-icons-corfu-folder-face
+    '((t
+       :family "Symbols Nerd Font Mono"
+       :inherit font-lock-string-face))
+    "Face for folder icons in Corfu.")
+  (with-eval-after-load 'nerd-icons-corfu
+    (setcdr
+     (assq 'file nerd-icons-corfu-mapping)
+     '(:fn nerd-icons-icon-for-file
+           :face my/nerd-icons-corfu-file-face))
+    (setcdr
+     (assq 'folder nerd-icons-corfu-mapping)
+     '(:fn nerd-icons-icon-for-dir
+           :face my/nerd-icons-corfu-folder-face)))
+  )
+
 
 ;; 画面の余白
 (use-package spacious-padding
+  :custom
+  (spacious-padding-widths
+   ;; '( :internal-border-width 15 ;; Emacsフレーム（ウィンドウ全体）の外周の内側。
+   ;;    :header-line-width 4 ;; バッファの最上部に表示されるヘッダーライン
+   ;;    :mode-line-width 6 ;; バッファの最下部に表示されるモードライン
+   ;;    :tab-width 4
+   ;;    :right-divider-width 30 ;; 画面を左右に割ったときの境界線
+   ;;    :scroll-bar-width 8 ;; 画面の右側（または左側）に表示されるスクロールバー
+   ;;    )
+   '( :internal-border-width 15 ;; Emacsフレーム（ウィンドウ全体）の外周の内側。
+      :header-line-width 0 ;; バッファの最上部に表示されるヘッダーライン
+      :mode-line-width 6 ;; バッファの最下部に表示されるモードライン
+      :tab-width 0
+      :right-divider-width 10 ;; 画面を左右に割ったときの境界線
+      :scroll-bar-width 0 ;; 画面の右側（または左側）に表示されるスクロールバー
+      )
+   )
+  (spacious-padding-subtle-frame-lines
+   '( :mode-line-active default
+      :mode-line-inactive vertical-border))
   :config
-  (setq spacious-padding-widths
-        '( :internal-border-width 15
-           :header-line-width 4
-           :mode-line-width 6
-           :tab-width 4
-           :right-divider-width 30
-           :scroll-bar-width 8))
+  ;; init.el を再評価しても、有効化処理を繰り返さない。
 
   ;; Read the doc string of `spacious-padding-subtle-mode-line' as it
   ;; is very flexible and provides several examples.
   (setq spacious-padding-subtle-mode-line
         `( :mode-line-active 'default
            :mode-line-inactive vertical-border))
+  (unless spacious-padding-mode
+    (spacious-padding-mode 1))
+  )
 
-  (spacious-padding-mode +1))
+  (custom-set-faces
+ ;; ;; 1. モードライン（アクティブ）のパディング色
+ ;; '(mode-line ((t (:background "#3c3836" :foreground "#ebdbb2"))))
 
+ ;; 2. モードライン（非アクティブ）のパディング色
+ ;; '(mode-line-inactive ((t (:background "#282828" :foreground "#a89984"))))
+
+ ;; 3. ウィンドウ分割時の境界線（縦の区切り線）のパディング色
+ ;; '(window-divider ((t (:background "#32302f" :foreground "#32302f"))))
+
+ ;; ;; 4. タブバーを利用している場合
+ ;; '(tab-bar ((t (:background "#1d2021"))))
+ )
 
 ;; (use-package breadcrumb
 ;;   :straight (breadcrumb :type git :host nil :repo "https://github.com/joaotavora/breadcrumb.git")
 ;;   :config
 ;;   (breadcrumb-mode +1))
+
+;; (use-package svg-margin
+;;   :straight (:host github :repo "chiply/svg-margin"))
 
 
 (let ((elapsed (float-time (time-subtract (current-time) start-time))))
@@ -737,9 +793,9 @@
 
 ;; -- でオプション指定
 ;; 特定のファイルのみを対象
-;; {検索文字列} -- -g *.el
+;; {検索文字列} - -g *.el
 ;; !で反転(特定のファイル以外を対象)
-;; {検索文字列} -- -g !*.el
+;; {検索文字列} - -g !*.el
 (use-package consult
   :init
   (setq xref-show-xrefs-function #'consult-xref
@@ -748,13 +804,19 @@
   :after (vertico) ; Load after vertico
   :bind
   ("C-s" . consult-line)  ;; バッファ内をキーワードで検索
-  ("C-x b" . consult-buffer)
-  ("C-x 4 b" . consult-buffer-other-window)
+  ;; ("C-x b" . consult-buffer)
+  ;; ("C-x b" . consult-buffer-other-window)
+  ("C-x b" . consult-project-buffer)
+  ;; ("C-x 4 b" . consult-buffer-other-window)
   ;; ("C-r" . consult-ripgrep) ;; ripgrep がインストールされていれば
   ;; ("C-g C-g" . consult-grep) ;; デフォルトの grep コマンドに consult を適用
   ("M-y" . consult-yank-pop) ;; kill-ring の履歴から選択
   ("C-c C-r" . consult-register)
   ("C-x C-r" . consult-recent-file)
+  :custom
+  (consult-find-args
+   "find . -not ( -path */.git -prune )") ;; findで.githubが対象から外れないようにする
+  ;; defaultは ("find . -not ( -path */.[A-Za-z]* -prune )")
   :config
   (consult-customize
    consult-recent-file :preview-key nil)
@@ -797,8 +859,8 @@
   ("M-." . embark-dwim))        ;; good alternative: M-.
   ;; ("C-h B" . embark-bindings) ;; alternative for `describe-bindings'
 
-  :init
-  (setq prefix-help-command #'embark-prefix-help-command)
+  ;; :init
+  ;; (setq prefix-help-command #'embark-prefix-help-command)
 
   :config
   ;; Hide the mode line of the Embark live/completions buffers
@@ -806,6 +868,15 @@
                '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
                  nil
                  (window-parameters (mode-line-format . none))))
+
+  ;; ;; vertico-buffer-frameを使う場合の設定
+  ;; ;; action を minibuffer completion で選ぶ
+  ;; (setq embark-prompter #'embark-completing-read-prompter)
+  ;; ;; *Embark Actions* buffer を自動表示しない
+  ;; (setq embark-indicators
+  ;;       '(embark-minimal-indicator
+  ;;         embark-highlight-indicator
+  ;;         embark-isearch-highlight-indicator))
   )
 
 (use-package embark-consult
@@ -972,7 +1043,7 @@
           ("C-c r" . eglot-rename)
           ("C-c o" . eglot-code-action-organize-imports)
           ("C-c a" . eglot-code-actions)
-          ("C-c h" . eldoc)
+          ;; ("C-c h" . eldoc)
           ("<f6>" . xref-find-definitions)
           ("C-," . eglot-find-implementation)
           )
@@ -982,6 +1053,7 @@
              eglot-code-actions
              )
   :config
+  (setq eldoc-idle-delay 10000)
   ;; (with-eval-after-load 'flymake
   ;;   (setq flymake-no-changes-timeout 0.5
   ;;         flymake-start-on-save-buffer t
@@ -1053,11 +1125,46 @@
   :after eglot
   :init
   (setq eldoc-box-lighter (nerd-icons-faicon "nf-fa-crow"))
+  :bind
+  (:map eglot-mode-map
+        ;; ポイント位置にあるシンボルの説明をchild frameで表示
+        ;; ("C-h" . eldoc-box-help-at-point)
+        ("C-h" . my/eldoc-box-help-at-point)
+        )
+  :custom
+  ;; 元のバッファで C-g を押したとき、eldoc-boxを閉じる
+  (eldoc-box-clear-with-C-g t)
   :config
   ;; (set-face-attribute 'eldoc-box-border nil :background "white")
   (set-face-attribute 'eldoc-box-border nil :background "black")
   ;; (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-mode t)
-  (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-at-point-mode t)
+  ;; (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-at-point-mode t)
+  (defun my/eldoc-box-help-at-point ()
+    "現在位置のEldoc情報を取得し、eldoc-boxで表示する。"
+    (interactive)
+
+    (unless eldoc-documentation-functions
+      (user-error "このバッファにはEldocバックエンドがありません"))
+
+    (if (eldoc-box--frame-visible-p)
+        (eldoc-box-help-at-point)
+
+      ;; eldoc-boxが参照するドキュメントバッファを初期化
+      (eldoc-display-in-buffer
+       '(("Loading documentation..."))
+       nil)
+
+      ;; child frameを作成し、非同期更新を受け付ける状態にする
+      (eldoc-box-help-at-point)
+
+      ;; 現在位置の情報をEglotから取得
+      (let ((eldoc--last-request-state nil))
+        (eldoc-print-current-symbol-info nil))))
+  (add-hook
+   'eldoc-box-buffer-setup-hook
+   (lambda (_origin-buffer)
+     (local-set-key (kbd "C-g")
+                    #'eldoc-box-quit-frame)))
   )
 
 ;; eldocの情報を追加します。
@@ -1080,7 +1187,14 @@
 ;; emacsの組み込み関数を利用してシンボルをハイライトしてくれます。
 (use-package symbol-overlay
   :config
-  (setq symbol-overlay-idle-time 0)
+  (setq symbol-overlay-idle-time 0.1)
+  (symbol-overlay-update-timer symbol-overlay-idle-time)
+  (set-face-attribute
+   'symbol-overlay-default-face nil
+   :inherit nil
+   :weight 'bold
+   :background 'unspecified
+   :foreground 'unspecified)
   :hook (prog-mode . symbol-overlay-mode)
   )
 
@@ -1250,6 +1364,11 @@
 ;;   )
 ;; (add-hook 'window-selection-change-functions #'my/after-jump-window)
 
+(use-package better-jumper
+  :straight (better-jumper :type git :host nil :repo "https://github.com/gilbertw1/better-jumper.git" :tag "master")
+  :config
+  (better-jumper-mode +1)
+  )
 ;;; ----- window ----------------------------------------
 
 
@@ -1320,6 +1439,11 @@
        (setq ns-command-modifier (quote meta))
  (setq ns-alternate-modifier (quote super))
  )
+
+(if (string-match "ac297.local" (system-name))
+       (setq ns-command-modifier (quote meta))
+ (setq ns-alternate-modifier (quote super))
+)
 
 ;;reload
 ;; use-packageの場合、M-x eval-defunを使う
@@ -1547,48 +1671,94 @@
 ;;; ----- markdown ----------------------------------------
 
 
-;;; -------- neotree ---------------------------------
-(setq package-start-time (current-time))
-(use-package neotree
-  ;; :after
-  ;; projectile
-  :commands
-  (neotree-show neotree-hide neotree-dir neotree-find)
-  :config
-  (setq neo-window-fixed-size nil)
-  ;; line-numberを表示しない
-  (add-hook 'neotree-mode-hook (lambda () (display-line-numbers-mode -1)))
-  (setq neo-smart-open t) ;; treeを展開する
+;; ;;; -------- neotree ---------------------------------
+;; (setq package-start-time (current-time))
+;; (use-package neotree
+;;   ;; :after
+;;   ;; projectile
+;;   :commands
+;;   (neotree-show neotree-hide neotree-dir neotree-find)
+;;   :config
+;;   (setq neo-window-fixed-size nil)
+;;   ;; line-numberを表示しない
+;;   (add-hook 'neotree-mode-hook (lambda () (display-line-numbers-mode -1)))
+;;   (setq neo-smart-open t) ;; treeを展開する
+;;   (add-hook 'post-command-hook
+;;             #'my/neotree-follow-current-file)
+;;   :custom
+;;   (neo-theme 'nerd-icons)
+;;   (neo-window-fixed-size nil) ;; 幅を調節できるようにする
+;;   (neo-show-hidden-files t) ;; デフォルトで隠しファイル表示
+;;   ;; (after-save-hook 'neotree-refresh)
+;;   :bind
+;;   ;;("<f8>" . neotree-projectile-toggle)
+;;   ("<f8>" . neotree-project-dir)
+;;   ;; ("M-<up>" . enlarge-window-horizontally) ;;広げる
+;;   ;; ("M-<down>" . shrink-window-horizontally) ;; 狭くする
+;;   :preface
+;;   (defun neotree-project-dir ()
+;;     "Open NeoTree using the git root."
+;;     (interactive)
+;;     (let ((project-dir (my/project-root))
+;;           (file-name (buffer-file-name)))
+;;       (neotree-toggle)
+;;       (if project-dir
+;;           (if (neo-global--window-exists-p)
+;;               (progn
+;;                 (neotree-dir project-dir)
+;;                 (neotree-find file-name)))
+;;         (message "Could not find git project root."))))
+;;   )
+
+(defun treemacs-project-dir ()
+  "現在のプロジェクトをルートとしてTreemacsを開閉する。"
+  (interactive)
+  (require 'treemacs)
+
+  (if (eq (treemacs-current-visibility) 'visible)
+      (treemacs)
+    (treemacs-add-and-display-current-project-exclusively)))
+(use-package treemacs
+  :ensure t
+  :defer t
   :custom
-  (neo-theme 'nerd-icons)
-  (neo-window-fixed-size nil) ;; 幅を調節できるようにする
-  (neo-show-hidden-files t) ;; デフォルトで隠しファイル表示
-  ;; (after-save-hook 'neotree-refresh)
+  (treemacs-indentation 1)
   :bind
-  ;;("<f8>" . neotree-projectile-toggle)
-  ("<f8>" . neotree-project-dir)
-  ;; ("M-<up>" . enlarge-window-horizontally) ;;広げる
-  ;; ("M-<down>" . shrink-window-horizontally) ;; 狭くする
-  :preface
-  (defun neotree-project-dir ()
-    "Open NeoTree using the git root."
-    (interactive)
-    (let ((project-dir (my/project-root))
-          (file-name (buffer-file-name)))
-      (neotree-toggle)
-      (if project-dir
-          (if (neo-global--window-exists-p)
-              (progn
-                (neotree-dir project-dir)
-                (neotree-find file-name)))
-        (message "Could not find git project root."))))
+  (("<f8>" . treemacs-project-dir))
+  :hook
+  (treemacs-mode
+   . (lambda ()
+       (display-line-numbers-mode -1)))
+  ;; :config
+  ;; (treemacs-follow-mode 1) ;; 現在選択中のファイルへ追従
+  ;; (treemacs-project-follow-mode 1) ;; 現在のバッファに対応するプロジェクトへ切り替える
+  )
+
+
+(use-package treemacs-nerd-icons
+  :after (treemacs nerd-icons)
+  :config
+  ;; ディレクトリの色を黒にする
+  (set-face-attribute
+   'treemacs-nerd-icons-file-face nil
+   :inherit 'nerd-icons-black
+   :foreground 'unspecified)
+  (set-face-attribute
+   'treemacs-directory-face nil
+   :inherit 'nerd-icons-black
+   :foreground 'unspecified)
+  (set-face-attribute
+   'treemacs-root-face nil
+   :inherit 'nerd-icons-black
+   :foreground 'unspecified)
+  (treemacs-nerd-icons-config)
   )
 
 ;; 不要なモードラインを消す
 (use-package hide-mode-line
   :hook
   ;; ((neotree-mode imenu-list-minor-mode) . hide-mode-line-mode)
-  ((neotree-mode) . hide-mode-line-mode)
+  ((neotree-mode treemacs-mode agent-shell-mode) . hide-mode-line-mode)
   )
 
 ;; 以下 usage
@@ -1620,22 +1790,50 @@
 ;;  - [neotree-delete-node] Delete a Node
 ;;  - [neotree-create-node] Create a file or a directory (if filename ends with ‘/’)
 
-(use-package neo-highlight
-  :straight (neo-highlight
-             :type git
-             :host nil
-             :repo "https://github.com/if001/neo-highlight.git")
-  :after neotree
-  :config
-  (custom-set-faces
-   '(neo-highlight-current-file-face ((t (:background "#f9e8c0" :underline nil)))))
-  (neo-highlight-mode 1)
-  )
+;; (use-package neo-highlight
+;;   :straight (neo-highlight
+;;              :type git
+;;              :host nil
+;;              :repo "https://github.com/if001/neo-highlight.git")
+;;   :after neotree
+;;   :config
+;;   (custom-set-faces
+;;    '(neo-highlight-current-file-face ((t (:background "#f9e8c0" :underline nil)))))
+;;   (neo-highlight-mode 1)
+;;   )
 
 (let ((elapsed (float-time (time-subtract (current-time) start-time))))
   (message "neotree: %.3f" elapsed))
 ;;; -------- neotree ---------------------------------
 
+
+
+;; rustをinstallしておいて、wasm-pack, justをinstall
+;; git clone --recurse-submodules https://github.com/nohzafk/emacs-workspace-hud.git
+;; cd ui && wasm-pack build --target web --release
+;; just setup
+;; just wasm
+;; (add-to-list 'load-path "~/mysrc/emacs-workspace-hud/emacs-egui/lisp")
+;; (use-package workspace-hud
+;;   :straight nil
+;;   :ensure nil
+;;   :load-path "~/mysrc/emacs-workspace-hud/lisp"
+;;   :custom
+;;   (workspace-hud-margin-top 43)
+;;   (workspace-hud-margin-right 50)
+;;   ;; :config
+;;   ;; (workspace-hud-auto-mode)
+;;   )
+;;
+;; ;; git clone https://github.com/nohzafk/agent-shell-hud
+;; (use-package agent-shell-hud
+;;   :ensure nil
+;;   :straight nil
+;;   :load-path "~/mysrc/agent-shell-hud"
+;;   :after (agent-shell workspace-hud)
+;;   ;; :config
+;;   ;; (agent-shell-hud-mode 1)
+;;   )
 
 
 ;;; -------- magit ---------------------------------
@@ -1665,11 +1863,16 @@
 (use-package diff-hl
   :hook ((magit-pre-refresh . diff-hl-magit-pre-refresh)
          (magit-post-refresh . diff-hl-magit-post-refresh)
-         (dired-mode . diff-hl-dired-mode))
+         (dired-mode . diff-hl-dired-mode)
+         )
+  :custom
+  (diff-hl-fringe-bmp-function #'diff-hl-fringe-bmp-from-pos)
+  (diff-hl-draw-borders nil)
   :init
-  (global-diff-hl-mode +1)
-  (global-diff-hl-show-hunk-mouse-mode +1)
-  (diff-hl-margin-mode +1))
+  (global-diff-hl-mode 1)
+  (global-diff-hl-show-hunk-mouse-mode 1)
+  (diff-hl-margin-mode 1)
+  )
 
 ;; git diffをblameで比較する
 (use-package difftastic
@@ -1743,8 +1946,8 @@
   :straight (treesit-fold :type git :host github :repo "emacs-tree-sitter/treesit-fold")
   :config
   (setq treesit-fold-summary-exceeded-string " ▼")
-  :bind
-  ("C-h" . treesit-fold-toggle)
+  ;; :bind
+  ;; ("C-h" . treesit-fold-toggle)
   )
 
 
@@ -1792,9 +1995,9 @@
 ;; (add-to-list 'auto-mode-alist '("\\.js\\'" . js-ts-mode))
 ;; (add-to-list 'auto-mode-alist '("\\.jsx\\'" . js-ts-mode))
 
-;; reformatterでglobal-prettier-formatをdefineすることでglobal-prettier-format-bufferが登録される
+;; reformatterでglobal-prettier-format/global-biome-formatをdefineすることで*-format-bufferが登録される
 ;; save-hookはreformatterを使わず手動で設定する
-(add-hook 'js-ts-mode-hook #'my/enable-prettier-on-save)
+(add-hook 'js-ts-mode-hook #'my/enable-formatter-on-save)
 
 ;; jsではeglot(tsserver)のflymakeが動かないので、flymake-eslintを使う
 ;; flymake-collectionのflymake-collection-eslintではエラーがでるので、
@@ -1875,6 +2078,10 @@
   (setenv "PATH" (concat dotnet-tool-path path-separator (getenv "PATH"))))
 ;;; --------- csharp ------------------------
 
+;;; --------- docker ------------------------
+(add-to-list 'auto-mode-alist '("Dockerfile\\'" . dockerfile-ts-mode))
+;;; --------- docker ------------------------
+
 ;;; --------- format ------------------------
 (use-package reformatter
   :ensure t
@@ -1885,6 +2092,10 @@
     :program "prettier"
     :args `("--stdin-filepath" ,(buffer-file-name))
     :lighter " PrettierFmt")
+  (reformatter-define global-biome-format
+    :program "biome"
+    :args `("format" "--write" "--stdin-file-path" ,(buffer-file-name))
+    :lighter " BiomeFmt")
   (reformatter-define python-format
     :program "ruff"
     :args `("format" "--stdin-filename" ,buffer-file-name))
@@ -1969,29 +2180,34 @@
   ;;(require 'gptel-org)
   (setq
    gptel-default-mode 'org-mode
-   ;; gptel-default-mode 'markdown-mode
-   gptel-model 'gemini-3-flash-preview
-   gptel-backend   (gptel-make-gemini "Gemini"
+   ;; gptel-default-mode 'markdwn-mode
+   ;; gptel-model 'gemini-3-flash-preview
+   gptel-model 'kimi-k2.6:cloud
+   gptel-backend (gptel-make-ollama "ollama-cloud"
+                   :host "ollama.com"
+                   :protocol "https"
+                   :stream t
+                   :key (getenv "OLLAMA_API_KEY")
+                   ;; :header (concat "Authorization: Bearer " (getenv "OLLAMA_API_KEY"))
+                   :header (lambda ()
+                             (list
+                              (cons ("Authorization: Bearer"  (getenv "OLLAMA_API_KEY")))
+                              )
+                             )
+                   :models '(kimi-k2.6:cloud kimi-k2.5:cloud qwen3.5:cloud)
+                   )
+   )
+  (gptel-make-gemini "Gemini"
                      :key (getenv "GEMINI_API_KEY")
                      :stream t
                      :request-params '(:tools [(:google_search ())])
                      )
-   )
   (gptel-make-gh-copilot "Copilot"
     :host "api.business.githubcopilot.com")
-  (setq gptel-model 'claude-haiku-4.5
-        gptel-backend (gptel-make-gh-copilot "Copilot"))
-
   (gptel-make-ollama "ollama-local"
     :host "172.22.1.15:11434"
     :stream t
     :models '(qwen3.5:4b qwen3:8b))
-  (gptel-make-ollama "ollama-cloud"
-    :host "https://ollama.com"
-    :stream t
-    :key (getenv "OLLAMA_API_KEY")
-    :models '(qwen3.5:cloud kimi-k2.5:cloud)
-    )
   (gptel-make-ollama "ollama-nv"
     :host "10.16.1.123:11434"
     :stream t
@@ -2040,7 +2256,8 @@
      ;;                              :env (:CLOUD_SERVICE "false" :FIRECRAWL_API_KEY "test" :FIRECRAWL_API_URL "http://172.22.1.15:3002" :HTTP_STREAMABLE_SERVER "false"))
      ;;  )
     ;; ("firecrawl-mcp" . (:command "sh" :args ("-lc" "node" "~/prog/mcp/firecrawl-mcp-server/dist/index.js") :env (:CLOUD_SERVICE "false" :FIRECRAWL_API_KEY "test" :FIRECRAWL_API_URL "172.22.1.15:3002" :HTTP_STREAMABLE_SERVER "false")))
-     ("fetch" . (:command "uvx" :args ("mcp-server-fetch")))
+     ;; ("fetch" . (:command "uvx" :args ("mcp-server-fetch")))
+     ("playwright" . (:command "npx" :args ("@playwright/mcp@latest")))
      ;; ("filesystem" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-filesystem") :roots (getenv "HOME")))
      ;; ("sequential-thinking" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-sequential-thinking")))
      ("context7" . (:command "npx" :args ("-y" "@upstash/context7-mcp") :env (:DEFAULT_MINIMUM_TOKENS "6000")))
@@ -2069,10 +2286,21 @@
   :straight (acp :type git :host nil :repo "https://github.com/xenodium/acp.el.git")
   )
 (add-to-list 'exec-path "./target/debug/") ;; codex-acp用
+
+(defun my/agent-shell-setup ()
+  "agent-shell バッファ向けの表示設定。"
+  ;; 行番号を非表示
+  (display-line-numbers-mode -1)
+
+  ;; centaur-tabs のタブを、このバッファだけ非表示
+  (when (bound-and-true-p centaur-tabs-mode)
+    (centaur-tabs-local-mode 1)))
 (use-package agent-shell
   :ensure t
   :after acp
   :straight (agent-shell :type git :host nil :repo "https://github.com/xenodium/agent-shell")
+  :hook
+  (agent-shell-mode . my/agent-shell-setup)
   :ensure-system-package
   ;; Add agent installation configs here
   (
@@ -2084,12 +2312,80 @@
    ;; (codex . "npx @zed-industries/codex-acp")
    )
   )
+
+;; agent-shellで保存(M-x org-store-link), org側で(M-x org-insert-link)
+(use-package agent-shell-links
+  :straight (:host github :repo "ultronozm/agent-shell-links.el")
+  :demand
+  :config
+  (agent-shell-links-bookmark-setup)
+  (with-eval-after-load 'ol
+    (org-link-set-parameters
+     "agent-shell"
+     :follow #'agent-shell-links-org-follow
+     :store #'agent-shell-links-org-store)))
+
+(use-package knockknock
+  :straight (:host github :repo "konrad1977/knockknock"))
+
+(use-package agent-shell-notifications
+  :straight (agent-shell-notifications
+             :type git
+             :host github
+             :repo "zackattackz/agent-shell-notifications")
+  ;; :after agent-shell
+  :hook
+  ;; Enable notifications in each agent-shell buffer
+  (agent-shell-mode . agent-shell-notifications-mode)
+
+  ;;:config
+  ;; Notification display timeout in seconds (0 = never expire (the default), -1 = backend default)
+  ;; (setq agent-shell-notifications-timeout 5)
+
+  ;; Seconds to wait before notifying when the shell is already visible (default: 10)
+  ;; (setq agent-shell-notifications-idle-timeout 30)
+
+  ;; Advanced filtering: suppress notifications during certain hours
+  ;; (add-hook 'agent-shell-notifications-inhibit-functions
+  ;;           (lambda (_type _event)
+  ;;             (let ((hour (decoded-time-hour (decode-time))))
+  ;;               (and (>= hour 9) (< hour 17)))))
+
+  ;; Use the knockknock backend instead of the default libnotify
+  ;;(setq agent-shell-notifications-provider 'agent-shell-notifications-knockknock)
+  )
 ;;; -----------------------------------------
 ;; (message "4: %s" file-name-handler-alist)
 ;; tramp-modeを強制設定
 ;; file-name-handler-alistにtramp-の項目が含まれる必要がある
 ;; 設定されていないのでこれで無理やり設定する
 ;; (tramp-register-file-name-handlers)
+
+;; ---------------------- shell ----------------------------
+(unless
+    (or (eq system-type 'windows-nt)
+        (not (file-exists-p "/bin/zsh")))
+  (setq-default shell-file-name "/bin/zsh")
+  (setq explicit-shell-file-name "/bin/zsh"))
+(use-package ghostel
+  :straight (:type git :host nil :repo "https://github.com/dakra/ghostel")
+  )
+;; ---------------------- shell ----------------------------
+
+
+;; ---------------------- rss ----------------------------
+(use-package elfeed
+  :ensure t
+  :bind ("C-c n r" . elfeed) ; Global shortcut to open Elfeed
+  :config
+  (setq elfeed-feeds
+        '(
+          ("https://b.hatena.ne.jp/q/%E3%83%97%E3%83%AD%E3%82%B0%E3%83%A9%E3%83%9F%E3%83%B3%E3%82%B0?target=tag&date_range=5y&users=3&sort=recent&mode=rss" hatena programming)
+          ("https://b.hatena.ne.jp/q/LLM?target=tag&date_range=5y&users=3&sort=recent&mode=rss" hatena LLM)
+          ("https://b.hatena.ne.jp/q/cloudflare?target=tag&sort=recent&users=3&mode=rss" hatena cloudflare)
+          ))
+  )
+;; ---------------------- rss ----------------------------
 
 (minimal-emacs-load-user-init "myconf.el")
 (minimal-emacs-load-user-init "local-conf.el")

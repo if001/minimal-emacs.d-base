@@ -330,31 +330,29 @@
   :after (corfu nerd-icons)
   :config
   (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter)
+
+  ;; path補完時にアイコンが文字化けするのを修正
+  (defface my/nerd-icons-corfu-file-face
+    '((t
+       :family "Symbols Nerd Font Mono"
+       :inherit font-lock-string-face))
+    "Face for file icons in Corfu.")
+
+  (defface my/nerd-icons-corfu-folder-face
+    '((t
+       :family "Symbols Nerd Font Mono"
+       :inherit font-lock-string-face))
+    "Face for folder icons in Corfu.")
+  (with-eval-after-load 'nerd-icons-corfu
+    (setcdr
+     (assq 'file nerd-icons-corfu-mapping)
+     '(:fn nerd-icons-icon-for-file
+           :face my/nerd-icons-corfu-file-face))
+    (setcdr
+     (assq 'folder nerd-icons-corfu-mapping)
+     '(:fn nerd-icons-icon-for-dir
+           :face my/nerd-icons-corfu-folder-face)))
   )
-
-
-;; (defface my/nerd-icons-corfu-file-face
-;;   '((t
-;;      :family "Symbols Nerd Font Mono"
-;;      :inherit font-lock-string-face))
-;;   "Face for file icons in Corfu.")
-;;
-;; (defface my/nerd-icons-corfu-folder-face
-;;   '((t
-;;      :family "Symbols Nerd Font Mono"
-;;      :inherit font-lock-string-face))
-;;   "Face for folder icons in Corfu.")
-;;
-;; (with-eval-after-load 'nerd-icons-corfu
-;;   (setcdr
-;;    (assq 'file nerd-icons-corfu-mapping)
-;;    '(:fn nerd-icons-icon-for-file
-;;      :face my/nerd-icons-corfu-file-face))
-;;
-;;   (setcdr
-;;    (assq 'folder nerd-icons-corfu-mapping)
-;;    '(:fn nerd-icons-icon-for-dir
-;;      :face my/nerd-icons-corfu-folder-face)))
 
 
 ;; 画面の余白

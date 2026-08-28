@@ -2457,6 +2457,34 @@
    ;; (copilot-cli . "npm install -g @github/copilot")
    ;; (codex . "npx @zed-industries/codex-acp")
    )
+  :config
+  (setq agent-shell-github-acp-command
+      '("copilot"
+        "--acp"
+        "--allow-tool=shell"
+
+        "--deny-tool=shell(git add:*)"
+        "--deny-tool=shell(git commit:*)"
+        "--deny-tool=shell(git push:*)"
+        "--deny-tool=shell(git pull:*)"
+        "--deny-tool=shell(git fetch:*)"
+
+        "--deny-tool=shell(git reset:*)"
+        "--deny-tool=shell(git clean:*)"
+        "--deny-tool=shell(git checkout:*)"
+        "--deny-tool=shell(git switch:*)"
+        "--deny-tool=shell(git restore:*)"
+
+        "--deny-tool=shell(git merge:*)"
+        "--deny-tool=shell(git rebase:*)"
+        "--deny-tool=shell(git cherry-pick:*)"
+        "--deny-tool=shell(git revert:*)"
+        "--deny-tool=shell(git stash:*)"
+
+        "--deny-tool=shell(rm -rf:*)"
+        "--deny-tool=shell(rm -fr:*)"
+        "--deny-tool=shell(rm -r:*)"
+        "--deny-tool=shell(rm --recursive:*)"))
   )
 
 ;; agent-shellで保存(M-x org-store-link), org側で(M-x org-insert-link)
@@ -2471,35 +2499,79 @@
      :follow #'agent-shell-links-org-follow
      :store #'agent-shell-links-org-store)))
 
-(use-package knockknock
-  :straight (:host github :repo "konrad1977/knockknock"))
-
-(use-package agent-shell-notifications
-  :straight (agent-shell-notifications
+(use-package agent-shell-bookmark
+  :straight (agent-shell-bookmark
              :type git
              :host github
-             :repo "zackattackz/agent-shell-notifications")
-  ;; :after agent-shell
-  :hook
-  ;; Enable notifications in each agent-shell buffer
-  (agent-shell-mode . agent-shell-notifications-mode)
+             :repo "dcluna/agent-shell-bookmark")
+  :after agent-shell)
 
-  ;;:config
-  ;; Notification display timeout in seconds (0 = never expire (the default), -1 = backend default)
-  ;; (setq agent-shell-notifications-timeout 5)
-
-  ;; Seconds to wait before notifying when the shell is already visible (default: 10)
-  ;; (setq agent-shell-notifications-idle-timeout 30)
-
-  ;; Advanced filtering: suppress notifications during certain hours
-  ;; (add-hook 'agent-shell-notifications-inhibit-functions
-  ;;           (lambda (_type _event)
-  ;;             (let ((hour (decoded-time-hour (decode-time))))
-  ;;               (and (>= hour 9) (< hour 17)))))
-
-  ;; Use the knockknock backend instead of the default libnotify
-  ;;(setq agent-shell-notifications-provider 'agent-shell-notifications-knockknock)
+(use-package knockknock
+  :straight (knockknock :host github :repo "konrad1977/knockknock")
+  :config
+  ;; (setq knockknock-border-width 1)
+  ;; (setq knockknock-border-color "#595959")
+  (setq knockknock-background-color "#f2f2f2")
+  (setq knockknock-left-fringe 0)
+  (setq knockknock-right-fringe 0)
+  (setq knockknock-use-icons t)
+  (knockknock-notify
+             :title "test"
+             :message "knockknock is running"
+             :icon "nf-fa-code"
+             :duration 5)
   )
+;; (use-package agent-shell-attention
+;;   :straight (agent-shell-attention :host github :repo "ultronozm/agent-shell-attention.el")
+;;   :after (agent-shell knockknock)
+;;   :demand
+;;   ;; :bind (("C-z a" . agent-shell-attention-jump))
+;;   :config
+;;   (setopt agent-shell-attention-notify-function
+;;           (lambda (_buffer title body)
+;;             (knockknock-notify
+;;              :title title
+;;              :message body
+;;              :icon "nf-fa-code"
+;;              :duration 10)))
+;;   ;; (setopt agent-shell-attention-render-function #'agent-shell-attention-render-active)
+;;   ;; (setopt agent-shell-attention-indicator-location 'global-mode-string)
+;;   (agent-shell-attention-mode)
+;;   )
+
+;; (use-package agent-shell-knockknock
+;;   :straight (agent-shell-knockknock
+;;              :host github
+;;              :repo "xenodium/agent-shell-knockknock")
+;;   :after (agent-shell knockknock)
+;;   :hook (agent-shell-mode . agent-shell-knockknock-mode))
+;;
+;; (use-package agent-shell-notifications
+;;   :straight (agent-shell-notifications
+;;              :type git
+;;              :host github
+;;              :repo "zackattackz/agent-shell-notifications")
+;;   :after (agent-shell-knockknock)
+;;   :hook
+;;   ;; Enable notifications in each agent-shell buffer
+;;   (agent-shell-mode . agent-shell-notifications-mode)
+;;
+;;   :config
+;;   ;; Notification display timeout in seconds (0 = never expire (the default), -1 = backend default)
+;;   ;; (setq agent-shell-notifications-timeout 5)
+;;
+;;   ;; Seconds to wait before notifying when the shell is already visible (default: 10)
+;;   ;; (setq agent-shell-notifications-idle-timeout 30)
+;;
+;;   ;; Advanced filtering: suppress notifications during certain hours
+;;   ;; (add-hook 'agent-shell-notifications-inhibit-functions
+;;   ;;           (lambda (_type _event)
+;;   ;;             (let ((hour (decoded-time-hour (decode-time))))
+;;   ;;               (and (>= hour 9) (< hour 17)))))
+;;
+;;   ;; Use the knockknock backend instead of the default libnotify
+;;   (setq agent-shell-notifications-provider 'agent-shell-notifications-knockknock)
+;;   )
 ;;; -----------------------------------------
 ;; (message "4: %s" file-name-handler-alist)
 ;; tramp-modeを強制設定

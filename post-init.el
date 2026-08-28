@@ -820,6 +820,9 @@
   (consult-find-args
    "find . -not ( -path */.git -prune )") ;; findで.githubが対象から外れないようにする
   ;; defaultは ("find . -not ( -path */.[A-Za-z]* -prune )")
+  (consult-ripgrep-args
+   "rg --null --line-buffered --color=never --max-columns=1000 --path-separator / --smart-case --no-heading --with-filename --line-number --search-zip --hidden --glob=!.git/*") ;; find同様、ripgrepでも.github以下を検索するようにする
+  ;; defaultは "rg --null --line-buffered --color=never --max-columns=1000 --path-separator /   --smart-case --no-heading --with-filename --line-number --search-zip"
   :config
   (consult-customize
    consult-recent-file :preview-key nil)

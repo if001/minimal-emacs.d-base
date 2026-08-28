@@ -2485,6 +2485,7 @@
         "--deny-tool=shell(rm -fr:*)"
         "--deny-tool=shell(rm -r:*)"
         "--deny-tool=shell(rm --recursive:*)"))
+  (setq agent-shell-session-restore-verbosity 'first-last)
   )
 
 ;; agent-shellで保存(M-x org-store-link), org側で(M-x org-insert-link)

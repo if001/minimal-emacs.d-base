@@ -421,55 +421,58 @@
 
 
 ;;; ------------- tab --------------------
-(setq package-start-time (current-time))
-(use-package centaur-tabs
-  :ensure t
-  :init
-  (centaur-tabs-mode t) ;; グローバルにCentaur Tabsを有効にする
-  :config
-  (defun centaur-tabs-hide-tab (x)
-  "Do no to show buffer X in tabs."
-  (let ((name (format "%s" x)))
-    (or
-     ;; Current window is not dedicated window.
-     (window-dedicated-p (selected-window))
-
-     ;; Buffer name not match below blacklist.
-     ;; (string-prefix-p "*Flycheck" name)
-     ;; (string-prefix-p "*Flymake log*" name)
-     ;; (string-prefix-p "*Warnings*" name)
-     ;; (string-prefix-p "*Messages*" name)
-     ;; (string-prefix-p "*lsp" name)
-     ;; (string-prefix-p "*pylsp*" name)
-     ;; (string-prefix-p "*pylsp::stderr*" name)
-
-     ;; Is not magit buffer.
-     (and (string-prefix-p "magit" name)
-	  (not (file-name-extension name)))
-     )))
-  :custom
-  ;; (centaur-tabs-style "wave")
-  (centaur-tabs-height 40)
-
-  ;; icons
-  (centaur-tabs-set-icons t)
-  ;; (centaur-tabs-plain-icons t)
-  (centaur-tabs-icon-type 'nerd-icons)
-
-  ;; To display an underline over the selected tab:
-  ;; (centaur-tabs-set-bar 'over)
-  (centaur-tabs-set-bar 'under)
-  (x-underline-at-descent-line t)
-
-  (centaur-tabs-set-close-button nil)
-
-  ;; Customize the modified marker
-  (centaur-tabs-set-modified-marker t)
-  ;; (centaur-tabs-modified-marker "*")
-  :bind
-  ("M-[" . centaur-tabs-backward)
-  ("M-]" . centaur-tabs-forward)
-  )
+;; (setq package-start-time (current-time))
+;; (use-package centaur-tabs
+;;   :ensure t
+;;   :init
+;;   (centaur-tabs-mode t) ;; グローバルにCentaur Tabsを有効にする
+;;   :config
+;;   (setq centaur-tabs-group-by 'project)
+;;   ;; (setq centaur-tabs-group-by 'perspective)
+;;
+;;   (defun centaur-tabs-hide-tab (x)
+;;   "Do no to show buffer X in tabs."
+;;   (let ((name (format "%s" x)))
+;;     (or
+;;      ;; Current window is not dedicated window.
+;;      (window-dedicated-p (selected-window))
+;;
+;;      ;; Buffer name not match below blacklist.
+;;      ;; (string-prefix-p "*Flycheck" name)
+;;      ;; (string-prefix-p "*Flymake log*" name)
+;;      ;; (string-prefix-p "*Warnings*" name)
+;;      ;; (string-prefix-p "*Messages*" name)
+;;      ;; (string-prefix-p "*lsp" name)
+;;      ;; (string-prefix-p "*pylsp*" name)
+;;      ;; (string-prefix-p "*pylsp::stderr*" name)
+;;
+;;      ;; Is not magit buffer.
+;;      (and (string-prefix-p "magit" name)
+;; 	  (not (file-name-extension name)))
+;;      )))
+;;   :custom
+;;   ;; (centaur-tabs-style "wave")
+;;   (centaur-tabs-height 40)
+;;
+;;   ;; icons
+;;   (centaur-tabs-set-icons t)
+;;   ;; (centaur-tabs-plain-icons t)
+;;   (centaur-tabs-icon-type 'nerd-icons)
+;;
+;;   ;; To display an underline over the selected tab:
+;;   ;; (centaur-tabs-set-bar 'over)
+;;   (centaur-tabs-set-bar 'under)
+;;   (x-underline-at-descent-line t)
+;;
+;;   (centaur-tabs-set-close-button nil)
+;;
+;;   ;; Customize the modified marker
+;;   (centaur-tabs-set-modified-marker t)
+;;   ;; (centaur-tabs-modified-marker "*")
+;;   :bind
+;;   ("M-[" . centaur-tabs-backward)
+;;   ("M-]" . centaur-tabs-forward)
+;;   )
 
 (let ((elapsed (float-time (time-subtract (current-time) start-time))))
   (message "tab: %.3f" elapsed))
@@ -1732,8 +1735,30 @@
   ;; :config
   ;; (treemacs-follow-mode 1) ;; 現在選択中のファイルへ追従
   ;; (treemacs-project-follow-mode 1) ;; 現在のバッファに対応するプロジェクトへ切り替える
+  ;; :config                    ;
+  ;; ;; tab-bar の切り替えフックで Treemacs の表示を更新
+  ;; (advice-add 'treemacs--apply-annotations-deferred :around
+  ;;             (lambda (orig-fun &rest args)
+  ;;               (ignore-errors
+  ;;                 (apply orig-fun args))))
+  ;; ;; ---------------------------------------------------------------------------
+  ;; ;; tab-bar 切替時の Treemacs 更新処理（安全化＋遅延実行）
+  ;; ;; ---------------------------------------------------------------------------
+  ;; (add-hook 'tab-bar-tab-post-select-functions
+  ;;           (lambda (&rest _)
+  ;;             (when (eq (treemacs-current-visibility) 'visible)
+  ;;               (run-at-time 0.1 nil
+  ;;                            (lambda ()
+  ;;                              (when (eq (treemacs-current-visibility) 'visible)
+  ;;                                (ignore-errors
+  ;;                                  (treemacs-select-window)
+  ;;                                  (treemacs-refresh))))))))
   )
 
+(use-package treemacs-tab-bar ;;treemacs-tab-bar if you use tab-bar-mode
+  :after (treemacs)
+  :ensure t
+  :config (treemacs-set-scope-type 'Tabs))
 
 (use-package treemacs-nerd-icons
   :after (treemacs nerd-icons)
@@ -1802,10 +1827,128 @@
 ;;   (neo-highlight-mode 1)
 ;;   )
 
+
 (let ((elapsed (float-time (time-subtract (current-time) start-time))))
   (message "neotree: %.3f" elapsed))
 ;;; -------- neotree ---------------------------------
 
+
+
+;;; -------- project ---------------------------------
+(use-package project
+  :ensure nil
+  :bind
+  ("C-x p p" . tabspaces-open-or-switch-project-and-workspace)
+  )
+
+;; (use-package perspective
+;;   :bind
+;;   ("C-x C-b" . persp-list-buffers)         ; or use a nicer switcher, see below
+;;   :custom
+;;   (persp-mode-prefix-key (kbd "C-c M-p"))  ; pick your own prefix key here
+;;   :init
+;;   (persp-mode)
+;;   :config
+;;   (defun my/project-persp-switch (dir)
+;;     "project.el でプロジェクトを選択し、そのプロジェクト名でPerspectiveを開く"
+;;     (interactive (list (project-prompt-project-dir)))
+;;     (let* ((name (file-name-nondirectory (directory-file-name dir))))
+;;       (persp-switch name)
+;;       (let ((default-directory dir))
+;;         (project-switch-project dir))))
+;;   )
+;; (use-package treemacs-perspective
+;;   :ensure t
+;;   :after (treemacs perspective)
+;;   :config
+;;   (treemacs-set-scope-type 'Perspectives))
+
+(use-package tab-bar
+  :ensure nil
+  :bind
+  ("M-[" . tab-bar-switch-to-prev-tab)
+  ("M-]" . tab-bar-switch-to-next-tab)
+  :custom
+  (tab-bar-show 1)
+  (tab-bar-separator " ")                 ; タブ同士の間隔
+  (tab-bar-close-button-show nil)         ; 閉じボタン([X])を消してスマートにする
+  (tab-bar-tab-hints nil)                 ; 数字ショートカット表示の有無
+  (tab-bar-format '(tab-bar-format-tabs tab-bar-separator tab-bar-format-align-right)) ; フォーマット指定
+  :config
+  (tab-bar-mode 1)
+  (defvar my/tab-bar-icon-list
+    (list
+     (nerd-icons-mdicon "nf-md-waze" :face 'nerd-icons-cyan)
+     (nerd-icons-octicon "nf-oct-telescope" :face 'nerd-icons-yellow)
+     (nerd-icons-mdicon "nf-md-snake" :face 'nerd-icons-pink)
+     (nerd-icons-mdicon "nf-md-rocket_launch" :face 'nerd-icons-red)
+     (nerd-icons-mdicon "nf-md-cat" :face 'nerd-icons-green)
+     (nerd-icons-octicon "nf-oct-cpu" :face 'nerd-icons-orange)
+     (nerd-icons-octicon "nf-oct-squirrel" :face 'nerd-icons-purple)
+     (nerd-icons-mdicon "nf-md-muffin" :face 'nerd-icons-blue)
+     )
+    "tab-barのプロジェクトタイトルの先頭に付与するアイコンのリスト。")
+  (defvar my/tab-bar-project-icon-map (make-hash-table :test 'equal))
+  (defvar my/tab-bar-icon-index 0)
+  (defun my/get-icon-for-tab (tab-name)
+   (or (gethash tab-name my/tab-bar-project-icon-map)
+       (let ((icon (nth (% my/tab-bar-icon-index (length my/tab-bar-icon-list))
+                        my/tab-bar-icon-list)))
+          (setq my/tab-bar-icon-index (1+ my/tab-bar-icon-index))
+          (puthash tab-name icon my/tab-bar-project-icon-map)
+          icon)))
+  (setq tab-bar-tab-name-format-function
+        (lambda (tab i)
+          (let* ((raw-name (alist-get 'name tab))
+                 (current-p (eq (car tab) 'current-tab))
+                 (face-prop (if current-p 'tab-bar-tab 'tab-bar-tab-inactive))
+                 (ignore-p (or (not raw-name)
+                               (string-match-p "\\`\\*.*\\*\\'" raw-name)
+                               (string= raw-name "*knockknock*"))))
+            (if ignore-p
+                ;; 特殊タブの場合
+                (propertize (format " %s " raw-name)
+                            'face face-prop
+                            'mouse-face nil)
+              ;; 通常のプロジェクトタブの場合
+              (let* ((raw-icon (my/get-icon-for-tab raw-name))
+                     ;; アイコンに付与されている既存の Face を取得
+                     (icon-face (get-text-property 0 'face raw-icon))
+                     ;; アイコン本来のフォント/色に、タブの背景色(face-prop)を再合成
+                     (styled-icon (propertize raw-icon 'face (list icon-face face-prop)))
+                     (prefix (propertize " " 'face face-prop))
+                     (space  (propertize " " 'face face-prop))
+                     (title  (propertize (format "%s " raw-name) 'face face-prop))
+                     (result (concat prefix styled-icon space title)))
+                ;; ホバーハイライト(mouse-face)の削除
+                (remove-text-properties 0 (length result) '(mouse-face nil) result)
+                result)))))
+  (custom-set-faces
+   '(tab-bar-tab
+     ((t (:box (:line-width (10 . 12) :style flat-button))))) ;; アクティブなタブ（現在選択中のプロジェクト）
+   '(tab-bar-tab-inactive
+     ((t (:box (:line-width (10 . 12) :style flat-button))))) ;; 非アクティブなタブ
+   '(tab-bar
+     ((t (:height 1.00)))) ;; タブバー全体の背景領域
+   )
+  )
+
+(use-package tabspaces
+  :ensure t
+  :hook (after-init . tabspaces-mode)
+  :custom
+  (tabspaces-use-filtered-buffers-as-default t) ; C-x b をプロジェクト内限定にする
+  (tabspaces-default-tab "Home")                 ; 初期ワークスペース名
+  (tabspaces-remove-to-default nil)
+  (tabspaces-include-buffers '("*scratch*" "*Messages*"))
+  :config
+  ;; tab-bar の見た目自体は centaur-tabs と被るため非表示にする
+  ;; (ワークスペースの分離機能自体は裏で動作します)
+  (tab-bar-mode -1)
+
+  ;; tabspaces がワークスペース切り替え時に内部で tab-bar を有効化するのを防ぐ設定
+  (setq tabspaces-keymap-prefix "C-c t"))
+;;; -------- project ---------------------------------
 
 
 ;; rustをinstallしておいて、wasm-pack, justをinstall

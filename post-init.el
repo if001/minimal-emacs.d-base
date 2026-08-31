@@ -1349,15 +1349,15 @@
   )
 
 ;; imenu-listと相性が悪いので一旦OFF
-(use-package zoom
-  :config
-  (zoom-mode -1)
-  (setq zoom-size '(0.612 . 0.612))
-  (custom-set-variables
-   '(zoom-ignored-major-modes '(neotree-mode))
-   ;; '(zoom-ignored-buffer-names '("*Ilist*"))
-   )
-  )
+;; (use-package zoom
+;;   :config
+;;   (zoom-mode -1)
+;;   (setq zoom-size '(0.612 . 0.612))
+;;   (custom-set-variables
+;;    '(zoom-ignored-major-modes '(neotree-mode))
+;;    ;; '(zoom-ignored-buffer-names '("*Ilist*"))
+;;    )
+;;   )
 ;; (with-eval-after-load 'ace-window
 ;;   (defun my/after-jump-window (&rest _args)
 ;;     "ace-windowで移動した直後、移動先windowのbufferで処理する。"

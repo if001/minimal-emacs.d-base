@@ -1498,6 +1498,11 @@
 
 
 ;;; --------- org ---------------------------
+;; org-clock-inで開始/org-clock-outで終了
+;; 以下のようなテーブルを作って C-c C-c で集計
+;; #+BEGIN: clocktable :scope file :match "dev"
+;; #+END:
+
 (setq package-start-time (current-time))
 ;; templateに用いることができるelement
 ;; https://orgmode.org/manual/Template-elements.html
@@ -1609,7 +1614,9 @@
 (use-package org-modern
   :straight ( org-modern :type git :host nil :repo "https://github.com/minad/org-modern.git" :tag "1.9")
   :custom
-  (org-modern-fold-stars '(("▶" . "▼") ("▷" . "▽") ("▸" . "▾") ("▹" . "▿") ("▸" . "▾")))
+  ;; (org-modern-fold-stars '(("▶" . "▼") ("▷" . "▽") ("▸" . "▾") ("▹" . "▿") ("▸" . "▾")))
+  (org-modern-fold-stars '(("◯" . "●") ("◎" . "◉") ("◇" . "◆") ("▹" . "▿") ("▸" . "▾")))
+
   :config
   (setq org-modern-todo-faces
         (quote (("DOIN" :background "darkgreen" :foreground "white"))))
@@ -1639,7 +1646,54 @@
   (setopt org-ellipsis "…")
   (set-face-attribute 'org-ellipsis nil :inherit 'default :box nil)
 
+  ;; org tableで日付を利用するとずれるのでその対応
+  ;; (set-face-attribute 'org-table nil :inherit 'fixed-pitch)
+  ;; (set-face-attribute 'org-modern-label nil :inherit 'fixed-pitch)
+  ;; (setq org-modern-table nil)
+
+  (set-face-attribute 'org-modern-label nil
+                      :family (face-attribute 'fixed-pitch :family)
+                      :height 1.0
+                      :width 'normal)
   (global-org-modern-mode))
+
+
+;; (use-package org-roam
+;;   :ensure t
+;;   :custom
+;;   (org-roam-directory (file-truename "~/org-roam/"))
+;;   (org-roam-completion-everywhere t)
+;;
+;;   ;; 1. ノートの分類用タグやエイリアスを意識したテンプレート設計
+;;   (org-roam-capture-templates
+;;    '(("d" "default (slip-box)" plain "%?"
+;;       :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
+;;                          "#+title: ${title}\n#+filetags: %^g\n#+date: %U\n\n")
+;;       :unnarrowed t)))
+;;
+;;   ;; 2. バックリンクバッファの表示設定（現在のメモに言及している別メモを文脈付きで表示）
+;;   (org-roam-mode-sections
+;;    '(org-roam-backlinks-section
+;;      org-roam-reflinks-section
+;;      ;; TODO/アジェンダ関連のセクションはあえて読み込まない
+;;      ))
+;;
+;;   :bind (("C-c n l" . org-roam-buffer-toggle)
+;;          ("C-c n f" . org-roam-node-find)
+;;          ("C-c n i" . org-roam-node-insert)
+;;          ("C-c n c" . org-roam-capture)
+;;          ;; 3. タグ付与とエイリアス設定を素早く呼び出す
+;;          ("C-c n t" . org-roam-tag-add)
+;;          ("C-c n a" . org-roam-alias-add))
+;;
+;;   :config
+;;   (org-roam-db-autosync-mode))
+
+(defun my/org-roam-search ()
+  "Search org-roam directory using consult-ripgrep."
+  (interactive)
+  (consult-ripgrep org-roam-directory))
+
 (let ((elapsed (float-time (time-subtract (current-time) start-time))))
   (message "org: %.3f" elapsed))
 ;;; --------- org ---------------------------

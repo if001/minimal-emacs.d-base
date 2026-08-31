@@ -1375,6 +1375,14 @@
   :config
   (better-jumper-mode +1)
   )
+
+(use-package ultra-scroll
+  ;:vc (:url "https://github.com/jdtsmith/ultra-scroll") ; if desired (emacs>=v30)
+  :init
+  (setq scroll-conservatively 3) ; or whatever value you prefer, since v0.4
+        ;scroll-margin 0)        ; scroll-margin>0 is now supported, since v0.7
+  :config
+  (ultra-scroll-mode 1))
 ;;; ----- window ----------------------------------------
 
 

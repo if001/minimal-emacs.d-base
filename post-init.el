@@ -2158,6 +2158,17 @@
   ;; ("C-h" . treesit-fold-toggle)
   )
 
+(use-package kirigami
+  :straight (kirigami :type git :host github :repo "jamescherti/kirigami.el")
+  :custom
+  ;; Add Kirigami to the menu bar and context menu (`context-menu-mode').
+  (kirigami-show-menu-bar t)
+  (kirigami-show-context-menu t)
+  :config
+  (global-set-key (kbd "C-c z a") 'kirigami-toggle-fold)   ; Toggle fold at point
+  :init
+  (kirigami-global-mode 1))
+
 
 ;; (use-package smart-jump :ensure t)
 ;;

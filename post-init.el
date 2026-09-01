@@ -2001,6 +2001,7 @@
 (use-package tabspaces
   :ensure t
   :hook (after-init . tabspaces-mode)
+  :straight (:type git :host github :repo "mclear-tools/tabspaces")
   :custom
   (tabspaces-use-filtered-buffers-as-default t) ; C-x b をプロジェクト内限定にする
   (tabspaces-default-tab "Home")                 ; 初期ワークスペース名
@@ -2517,7 +2518,7 @@
 (use-package agent-shell
   :ensure t
   :after acp
-  :straight (agent-shell :type git :host nil :repo "https://github.com/xenodium/agent-shell")
+  :straight (agent-shell :type git :host nil :repo "https://github.com/xenodium/agent-shell" :rev "v0.74.3")
   :hook
   (agent-shell-mode . my/agent-shell-setup)
   :ensure-system-package

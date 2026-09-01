@@ -1043,6 +1043,7 @@
   ;; (setq eglot-report-progress t)
   ;; log非表示
   (setq eglot-events-buffer-size 0)
+  (setq eglot-events-buffer-config '(:size 0 :format short))
   (setq eglot-report-progress nil)
   (setq read-process-output-max (* 3 1024 1024)) ;; プロセス読み取りを広げてスループットUP
   :bind ( :map eglot-mode-map
@@ -1059,6 +1060,7 @@
              eglot-code-actions
              )
   :config
+  (setq eglot-sync-connect nil) ;;サーバーとの接続中にUIをブロックしないようにする
   (setq eldoc-idle-delay 10000)
   ;; (with-eval-after-load 'flymake
   ;;   (setq flymake-no-changes-timeout 0.5

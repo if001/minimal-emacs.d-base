@@ -2052,6 +2052,8 @@
 
 ;;; -------- magit ---------------------------------
 ;; branch list(tag list):  magit-status magit-show-refs
+;; magit-file-dispatch: 現在開いているファイル（バッファ）にスコープを絞った Git 操作を呼び出すポップアップ（Transient）メニュー(そのファイル単体のコミット履歴を表示など)
+;; magit-log-trace-definition: カーソル位置にある関数やシンボルの定義の変更履歴（変遷）を追跡・表示するコマンドです
 (setq package-start-time (current-time))
 (setq magit-format-file-function #'magit-format-file-nerd-icons)
 ;; (use-package magit

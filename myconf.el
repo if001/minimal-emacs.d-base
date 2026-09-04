@@ -836,6 +836,231 @@ Each active project preview uses this port or a higher unused port."
 ;;; my-preview-markdown.el ends here
 ;; ------------- go-grip -----------------
 
+
+
+;; ------------- lint -----------------
+;; package-lint と relintでインストール済みpackageを検証する
+(require 'bytecomp)
+(require 'relint)
+
+(defun my/format-relint-issue (issue)
+  "relint の警告オブジェクトを安全に文字列化する。"
+  (cond
+   ((stringp issue) issue)
+   ;; 公式の整形関数が存在する場合
+   ((fboundp 'relint--format-warning)
+    (relint--format-warning issue))
+   ;; cl-defstruct (relint--warning) のスロットにアクセス可能な場合
+   ((and (fboundp 'relint--warning-message)
+         (fboundp 'relint--warning-line))
+    (format "Line %d: %s"
+            (relint--warning-line issue)
+            (relint--warning-message issue)))
+   ;; フォールバック: そのまま文字列化
+   (t (format "%s" issue))))
+
+(defun my/audit-straight-packages (&optional target-package)
+  "straight.el 配下のパッケージを対象に、変数スコープ・非推奨コード・正規表現の安全性を検証する。
+TARGET-PACKAGE を指定すると単一パッケージのみ検証。"
+  (interactive
+   (list (when current-prefix-arg
+           (completing-read "Package: "
+                            (directory-files (straight--repos-dir) nil "^[^.]")))))
+  (let* ((repos-dir (straight--repos-dir))
+         (out-buf (get-buffer-create "*Straight-Security-Audit*"))
+         (target-dirs (if target-package
+                          (list (expand-file-name target-package repos-dir))
+                        (directory-files repos-dir t "^[^.]"))))
+    (with-current-buffer out-buf
+      (read-only-mode -1)
+      (erase-buffer)
+      (insert (format "=== Code & Security Audit Report (%s) ===\n\n" (current-time-string))))
+
+    (dolist (pkg-dir target-dirs)
+      (when (file-directory-p pkg-dir)
+        (let ((pkg-name (file-name-nondirectory (directory-file-name pkg-dir)))
+              (el-files (directory-files pkg-dir t "\\.el$")))
+
+          (with-current-buffer out-buf
+            (insert (format "\n========================================\n"))
+            (insert (format "[Package: %s]\n" pkg-name))
+            (insert (format "========================================\n")))
+
+          (dolist (file el-files)
+            ;; autoloads, 生成物, テストファイルは除外
+            (unless (string-match-p "\\(-autoloads\\|pkg\\|-test\\|tests?\\)\\.el$" file)
+              (let ((file-base (file-name-nondirectory file))
+                    (captured-warnings '()))
+
+                ;; ----------------------------------------------------
+                ;; 1. バイトコンパイル警告（変数スコープ・非推奨API）
+                ;; ----------------------------------------------------
+                (let ((byte-compile-warnings t)
+                      (byte-compile-log-warning-function
+                       (lambda (string _position fill level)
+                         (push (format "  [%s] %s"
+                                       (upcase (symbol-name (or level 'warning)))
+                                       (string-trim (if fill (fill-region-as-string string) string)))
+                               captured-warnings))))
+                  (condition-case err
+                      (byte-compile-file file nil)
+                    (error
+                     (push (format "  [FATAL] Byte-compile error: %s" (error-message-string err))
+                           captured-warnings))))
+
+                ;; ----------------------------------------------------
+                ;; 2. relint の実行（正規表現の安全性・構文解析）
+                ;; ----------------------------------------------------
+                (let ((relint-issues '()))
+                  (with-temp-buffer
+                    (setq-local buffer-offer-save nil)
+                    (insert-file-contents file)
+                    (emacs-lisp-mode)
+                    (setq buffer-file-name file)
+                    (unwind-protect
+                        (condition-case err
+                            (setq relint-issues (relint-buffer (current-buffer)))
+                          (error
+                           (push (format "  [FATAL] Relint error: %s" (error-message-string err))
+                                 captured-warnings)))
+                      (set-buffer-modified-p nil)
+                      (setq buffer-file-name nil)))
+
+                  (dolist (re relint-issues)
+                    (push (format "  [REGEXP] %s" (my/format-relint-issue re)) captured-warnings)))
+
+                ;; ----------------------------------------------------
+                ;; 結果の出力
+                ;; ----------------------------------------------------
+                (with-current-buffer out-buf
+                  (insert (format "\n-- %s\n" file-base))
+                  (if captured-warnings
+                      (dolist (w (nreverse captured-warnings))
+                        (insert w "\n"))
+                    (insert "  OK (No issues detected)\n")))))))))
+
+    (display-buffer out-buf)
+    (message "Audit completed. See *Straight-Security-Audit*.")))
+;; ------------- lint -----------------
+
+
+;; ------------- check package -----------------
+;; install済みのpackageがGNU ELPA/MELPA/GITHUB直接 なのかを表示する
+(require 'tabulated-list)
+
+(defun my-straight-package-report--source (package)
+  "Return a human-readable recipe source for PACKAGE."
+  (pcase (straight-recipe-source package)
+    ('gnu-elpa-mirror "GNU")
+    ('gnu-elpa        "GNU")
+    ('melpa           "MELPA")
+    ('nongnu-elpa     "NonGNU")
+    ('emacsmirror-mirror "Emacsmirror")
+    (`nil             "explicit")
+    (source           (symbol-name source))))
+
+(defun my-straight-package-report--host (recipe)
+  "Return host name for RECIPE."
+  (let ((host (plist-get recipe :host))
+        (repo (plist-get recipe :repo)))
+    (cond
+     (host
+      (symbol-name host))
+     ((and (stringp repo)
+           (string-match-p
+            "\\(?:github\\.com[:/]\\|github:\\)"
+            repo))
+      "github")
+     ((and (stringp repo)
+           (string-match-p "gitlab\\.com[:/]" repo))
+      "gitlab")
+     ((and (stringp repo)
+           (string-match-p "savannah\\.gnu\\.org" repo))
+      "savannah")
+     (t "-"))))
+
+(defun my-straight-package-report--commit (recipe)
+  "Return current Git commit for RECIPE."
+  (let ((local-repo (plist-get recipe :local-repo)))
+    (if (not local-repo)
+        "-"
+      (let ((dir (straight--repos-dir local-repo)))
+        (if (not (file-directory-p dir))
+            "-"
+          (with-temp-buffer
+            (let ((default-directory dir))
+              (if (zerop
+                   (process-file
+                    "git" nil t nil
+                    "rev-parse" "--short=12" "HEAD"))
+                  (string-trim (buffer-string))
+                "-"))))))))
+
+(defun my-straight-package-report--entries ()
+  "Return tabulated entries for straight packages."
+  (let (entries)
+    (maphash
+     (lambda (package recipe)
+       ;; Ignore pseudo-packages and packages without a repository.
+       (when (plist-get recipe :local-repo)
+         (let* ((source
+                 (my-straight-package-report--source package))
+                (host
+                 (my-straight-package-report--host recipe))
+                (repo
+                 (or (plist-get recipe :repo) "-"))
+                (commit
+                 (my-straight-package-report--commit recipe)))
+           (push
+            (list package
+                  (vector
+                   package
+                   source
+                   host
+                   (format "%s" repo)
+                   commit))
+            entries))))
+     straight--recipe-cache)
+    (sort entries
+          (lambda (a b)
+            (string-lessp (car a) (car b))))))
+
+(define-derived-mode my-straight-package-report-mode
+  tabulated-list-mode
+  "Straight Packages"
+  "Display packages managed by straight.el."
+
+  (setq tabulated-list-format
+        [("Package"    28 t)
+         ("Source"     14 t)
+         ("Host"       12 t)
+         ("Repository" 42 t)
+         ("Commit"     12 t)])
+
+  (setq tabulated-list-padding 2)
+  (setq tabulated-list-sort-key '("Package" . nil))
+
+  (tabulated-list-init-header))
+
+;;;###autoload
+(defun my/straight-package-report ()
+  "Display a report of packages registered with straight.el."
+  (interactive)
+  (unless (boundp 'straight--recipe-cache)
+    (user-error "straight.el is not loaded"))
+
+  (let ((buffer
+         (get-buffer-create "*Straight Package Report*")))
+    (with-current-buffer buffer
+      (my-straight-package-report-mode)
+      (setq tabulated-list-entries
+            (my-straight-package-report--entries))
+      (tabulated-list-print t))
+    (pop-to-buffer buffer)))
+;; ------------- check package -----------------
+
+
+
 (message "loaded myconf.el")
 
 ;;; myconf.el ends here

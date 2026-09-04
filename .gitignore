@@ -10,7 +10,11 @@ saveplace
 eln-cache/
 autosave/
 transient/
-straight/
+straight/repos/
+straight/build/
+straight/modified/
+straight/build-cache.el
+!straight/versions/default.el
 tree-sitter/
 elpa/
 

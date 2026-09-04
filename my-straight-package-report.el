@@ -7,6 +7,8 @@
 ;; - lockfile にあるが現在の dependency graph から説明できないか
 ;; を表示する。
 
+;; recipeを確認する
+;; (straight-recipes-retrieve 'foo)
 (require 'cl-lib)
 (require 'subr-x)
 (require 'tabulated-list)

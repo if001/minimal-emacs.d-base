@@ -3,6 +3,13 @@
 ;;; summary:
 ;;; code:
 
+;; lockファイルからバージョンを読み込み、自動的にそのコミットへ同期する
+(setq straight-check-for-modifications nil) ; 起動速度向上のため適宜
+(setq straight-vc-git-auto-fast-forward nil) ; lockファイルの指定外の自動更新を防ぐ
+
+;; 起動時にlockファイル (straight/versions/default.el) に基づいてチェックアウトする
+(straight-thaw-versions)
+
 ;; Straight bootstrap
 (defvar bootstrap-version)
 (let ((bootstrap-file

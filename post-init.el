@@ -1536,6 +1536,9 @@
   ;;     )
   ;;   )
 
+  (setq org-clock-persist t) ;; org-clock-inを引き継ぐ
+  (org-clock-persistence-insinuate) ;; org-clock-inを引き継ぐ
+
   ;; agendaの設定
   ;; (setq org-agenda-files (my-list-subdirectories work-directory))
   ;; (setq org-agenda-files '(work-directory))

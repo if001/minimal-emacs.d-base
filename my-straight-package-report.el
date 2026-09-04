@@ -11,7 +11,7 @@
 (require 'subr-x)
 (require 'tabulated-list)
 
-
+
 ;;; Source / repository information
 
 (defun my-straight-package-report--source (package)
@@ -62,7 +62,7 @@
                   (string-trim (buffer-string))
                 "-"))))))))
 
-
+
 ;;; Lockfile
 
 (defun my-straight-package-report--base-dir ()
@@ -115,7 +115,7 @@ If the same repository occurs in multiple profiles, keep one entry."
                 (cdr entry)))))
     result))
 
-
+
 ;;; Dependency graph
 
 (defun my-straight-package-report--packages ()
@@ -246,7 +246,7 @@ Example:
             (gethash current parent-table)))
     (string-join path " -> ")))
 
-
+
 ;;; Repository mapping / infrastructure
 
 (defun my-straight-package-report--repo-package-table ()
@@ -254,7 +254,7 @@ Example:
   (let ((table (make-hash-table :test #'equal)))
     (maphash
      (lambda (package recipe)
-       (when-let ((local-repo
+       (when-let* ((local-repo
                    (plist-get recipe :local-repo)))
          (let ((package-name
                 (if (symbolp package)
@@ -284,7 +284,7 @@ repositories."
           repo)))
      straight-recipe-repositories))))
 
-
+
 ;;; Classification
 
 (defun my-straight-package-report--yes-no (value)
@@ -330,7 +330,7 @@ repositories."
    (t
     "registered but unreachable")))
 
-
+
 ;;; Rows
 
 (defun my-straight-package-report--entries ()
@@ -371,13 +371,10 @@ repositories."
          entries
          seen-repos)
 
-    ;; ------------------------------------------------------------
     ;; Registered packages
-    ;; ------------------------------------------------------------
-
     (maphash
      (lambda (package-value recipe)
-       (when-let ((local-repo
+       (when-let* ((local-repo
                    (plist-get recipe :local-repo)))
 
          (let* ((package
@@ -413,12 +410,6 @@ repositories."
                  (my-straight-package-report--infrastructure-repo-p
                   local-repo))
 
-                (orphan
-                 (my-straight-package-report--orphan-p
-                  locked
-                  reachable
-                  infrastructure))
-
                 (reason
                  (my-straight-package-report--reason
                   package
@@ -441,26 +432,11 @@ repositories."
               (format "%s" repo)
               local-repo
               commit
-              (my-straight-package-report--yes-no locked)
-              (my-straight-package-report--yes-no root)
-              (my-straight-package-report--yes-no reachable)
-              (if orphan
-                  (propertize
-                   "YES"
-                   'face 'error)
-                "no")
               reason))
             entries))))
      straight--recipe-cache)
 
-    ;; ------------------------------------------------------------
-    ;; Repositories which occur in the lockfile but have no package
-    ;; in the current recipe cache.
-    ;;
-    ;; This is the important case for detecting stale / unexplained
-    ;; lock entries.
-    ;; ------------------------------------------------------------
-
+    ;; Lockfile entries without a currently registered package.
     (dolist (lock-entry lock-entries)
       (let ((local-repo (car lock-entry))
             (locked-commit (cdr lock-entry)))
@@ -473,9 +449,6 @@ repositories."
                  (infrastructure
                   (my-straight-package-report--infrastructure-repo-p
                    local-repo))
-
-                 (orphan
-                  (not infrastructure))
 
                  (package-name
                   (if known-packages
@@ -499,18 +472,9 @@ repositories."
                (if (>= (length locked-commit) 12)
                    (substring locked-commit 0 12)
                  locked-commit)
-               "yes"
-               "no"
-               "no"
-               (if orphan
-                   (propertize
-                    "YES"
-                    'face 'error)
-                 "no")
                reason))
              entries)))))
 
-    ;; Sort using the displayed package name, then local repo.
     (sort
      entries
      (lambda (a b)
@@ -518,7 +482,7 @@ repositories."
         (aref (cadr a) 0)
         (aref (cadr b) 0))))))
 
-
+
 ;;; UI
 
 (define-derived-mode my-straight-package-report-mode
@@ -533,11 +497,7 @@ repositories."
          ("Repository"  38 t)
          ("Local repo"  24 t)
          ("Commit"      12 t)
-         ("Lock?"        6 t)
-         ("Root?"        6 t)
-         ("Reachable?"  10 t)
-         ("Orphan?"      8 t)
-         ("Reason"      50 t)])
+         ("Reason"      60 t)])
 
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key

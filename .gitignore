@@ -30,3 +30,6 @@ elfeed/
 org-persist/
 
 .cache/
+
+org-clock-save.el
+tabsession.el

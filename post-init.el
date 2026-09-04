@@ -1121,12 +1121,12 @@
               ("C-c s" . consult-eglot-symbols)))
 
 
-;; eglotの拡張(基本rust用)
-(use-package eglot-x
-  :straight (eglot-x :type git :host nil :repo "https://github.com/nemethf/eglot-x.git")
-  :after eglot
-  :config
-  (eglot-x-setup))
+;; ;; eglotの拡張(基本rust用)
+;; (use-package eglot-x
+;;   :straight (eglot-x :type git :host nil :repo "https://github.com/nemethf/eglot-x.git")
+;;   :after eglot
+;;   :config
+;;   (eglot-x-setup))
 
 ;; ミニバッファのeldocをposframeで表示してくれます。
 (use-package eldoc-box
@@ -2085,17 +2085,18 @@
   (diff-hl-margin-mode 1)
   )
 
-;; git diffをblameで比較する
-(use-package difftastic
-  :demand t
-  :bind (:map magit-blame-read-only-mode-map
-              ("D" . difftastic-magit-show)
-              ("S" . difftastic-magit-show))
-  :config
-  (eval-after-load 'magit-diff
-    '(transient-append-suffix 'magit-diff '(-1 -1)
-       [("D" "Difftastic diff (dwim)" difftastic-magit-diff)
-        ("S" "Difftastic show" difftastic-magit-show)])))
+;; ;; git diffをblameで比較する
+;; (use-package difftastic
+;;   :demand t
+;;   :bind (:map magit-blame-read-only-mode-map
+;;               ("D" . difftastic-magit-show)
+;;               ("S" . difftastic-magit-show))
+;;   :config
+;;   (eval-after-load 'magit-diff
+;;     '(transient-append-suffix 'magit-diff '(-1 -1)
+;;        [("D" "Difftastic diff (dwim)" difftastic-magit-diff)
+;;         ("S" "Difftastic show" difftastic-magit-show)]))
+;;   )
 
 
 (let ((elapsed (float-time (time-subtract (current-time) start-time))))
@@ -2564,24 +2565,24 @@
   (setq agent-shell-session-restore-verbosity 'first-last)
   )
 
-;; agent-shellで保存(M-x org-store-link), org側で(M-x org-insert-link)
-(use-package agent-shell-links
-  :straight (:host github :repo "ultronozm/agent-shell-links.el")
-  :demand
-  :config
-  (agent-shell-links-bookmark-setup)
-  (with-eval-after-load 'ol
-    (org-link-set-parameters
-     "agent-shell"
-     :follow #'agent-shell-links-org-follow
-     :store #'agent-shell-links-org-store)))
-
-(use-package agent-shell-bookmark
-  :straight (agent-shell-bookmark
-             :type git
-             :host github
-             :repo "dcluna/agent-shell-bookmark")
-  :after agent-shell)
+;; ;; agent-shellで保存(M-x org-store-link), org側で(M-x org-insert-link)
+;; (use-package agent-shell-links
+;;   :straight (:host github :repo "ultronozm/agent-shell-links.el")
+;;   :demand
+;;   :config
+;;   (agent-shell-links-bookmark-setup)
+;;   (with-eval-after-load 'ol
+;;     (org-link-set-parameters
+;;      "agent-shell"
+;;      :follow #'agent-shell-links-org-follow
+;;      :store #'agent-shell-links-org-store)))
+;;
+;; (use-package agent-shell-bookmark
+;;   :straight (agent-shell-bookmark
+;;              :type git
+;;              :host github
+;;              :repo "dcluna/agent-shell-bookmark")
+;;   :after agent-shell)
 
 (use-package knockknock
   :straight (knockknock :host github :repo "konrad1977/knockknock")

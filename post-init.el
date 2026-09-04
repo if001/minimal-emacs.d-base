@@ -2056,9 +2056,9 @@
 ;; magit-log-trace-definition: カーソル位置にある関数やシンボルの定義の変更履歴（変遷）を追跡・表示するコマンドです
 (setq package-start-time (current-time))
 (setq magit-format-file-function #'magit-format-file-nerd-icons)
-;; (use-package magit
-;;     :straight (magit :type git :host nil :repo "https://github.com/magit/magit.git" :tag "v4.4.2")
-;;   )
+(use-package magit
+    :straight (magit :type git :host github :repo "magit/magit" :tag "v4.7.1")
+  )
 ;; (global-set-key (kbd "C-x g") 'magit-status)
 
 ;; (use-package git-gutter-fringe

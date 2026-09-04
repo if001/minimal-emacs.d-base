@@ -48,6 +48,8 @@
  ("knockknock" . "0920b9b390d4b4cc0818574e115d87eb245a41b5")
  ("let-alist" . "a331a39b02da002c6c570c4960106454f88a99a5")
  ("list-utils" . "bbea0e7cc7ab7d96e7f062014bde438aa8ffcd43")
+ ("llama" . "e6d2127c12d43a923b86341cb160c8c23c3a2e0d")
+ ("magit" . "acc4b3f4336dc6ca0d8c77b6d9758f4031705757")
  ("map" . "d0aac540461a2ed0e6f9e83de68a819d1a0db8c1")
  ("marginalia" . "35064463bf1506315e66ca6e095a278e5388bb13")
  ("markdown-mode" . "1f72cefa6a4b759f90e335e4908725a721b17ad9")
@@ -95,6 +97,7 @@
  ("ts.el" . "552936017cfdec89f7fc20c254ae6b37c3f22c5b")
  ("ultra-scroll" . "8aa8e7496b06fd7c3585fcae8275300a77e57730")
  ("vertico" . "12799edfb6bf8de2b060d231dcefd9d9afb930b4")
+ ("with-editor" . "f8f56876966e17566e129df183c46a26da10b04a")
  ("xr" . "07369f3ceeda919b06d2356d66bfbcbf8975d09d")
  ("xref" . "bd31f9ac86a105c01631b29e6f442049500e9928"))
 :epsilon

@@ -839,7 +839,8 @@ Each active project preview uses this port or a higher unused port."
 
 
 ;; ------------- lint -----------------
-;; package-lint と relintでインストール済みpackageを検証する
+;; relintとbyte-compileでインストール済みpackageを検証する
+;; 「」未定義の自由変数への代入」「obsolete な関数・変数の呼び出し」「実行時に壊れる引数の不整合」などを対象する
 (require 'bytecomp)
 (require 'relint)
 
@@ -847,16 +848,13 @@ Each active project preview uses this port or a higher unused port."
   "relint の警告オブジェクトを安全に文字列化する。"
   (cond
    ((stringp issue) issue)
-   ;; 公式の整形関数が存在する場合
    ((fboundp 'relint--format-warning)
     (relint--format-warning issue))
-   ;; cl-defstruct (relint--warning) のスロットにアクセス可能な場合
    ((and (fboundp 'relint--warning-message)
          (fboundp 'relint--warning-line))
     (format "Line %d: %s"
             (relint--warning-line issue)
             (relint--warning-message issue)))
-   ;; フォールバック: そのまま文字列化
    (t (format "%s" issue))))
 
 (defun my/audit-straight-packages (&optional target-package)
@@ -892,42 +890,47 @@ TARGET-PACKAGE を指定すると単一パッケージのみ検証。"
               (let ((file-base (file-name-nondirectory file))
                     (captured-warnings '()))
 
-                ;; ----------------------------------------------------
-                ;; 1. バイトコンパイル警告（変数スコープ・非推奨API）
-                ;; ----------------------------------------------------
-                (let ((byte-compile-warnings t)
-                      (byte-compile-log-warning-function
-                       (lambda (string _position fill level)
-                         (push (format "  [%s] %s"
-                                       (upcase (symbol-name (or level 'warning)))
-                                       (string-trim (if fill (fill-region-as-string string) string)))
-                               captured-warnings))))
-                  (condition-case err
-                      (byte-compile-file file nil)
-                    (error
-                     (push (format "  [FATAL] Byte-compile error: %s" (error-message-string err))
-                           captured-warnings))))
+                (with-temp-buffer
+                  (setq-local buffer-offer-save nil)
+                  (insert-file-contents file)
+                  (emacs-lisp-mode)
+                  (setq buffer-file-name file)
+                  (setq byte-compile-current-file file)
 
-                ;; ----------------------------------------------------
-                ;; 2. relint の実行（正規表現の安全性・構文解析）
-                ;; ----------------------------------------------------
-                (let ((relint-issues '()))
-                  (with-temp-buffer
-                    (setq-local buffer-offer-save nil)
-                    (insert-file-contents file)
-                    (emacs-lisp-mode)
-                    (setq buffer-file-name file)
-                    (unwind-protect
+                  (unwind-protect
+                      (progn
+                        ;; ----------------------------------------------------
+                        ;; 1. バイトコンパイル検証（ファイル出力なし・インメモリ実行）
+                        ;; ----------------------------------------------------
+                        (let ((byte-compile-warnings t)
+                              (byte-compile-log-warning-function
+                               (lambda (string _position fill level)
+                                 (push (format "  [%s] %s"
+                                               (upcase (symbol-name (or level 'warning)))
+                                               (string-trim (if fill (fill-region-as-string string) string)))
+                                       captured-warnings))))
+                          (condition-case err
+                              ;; バッファの内容を直接コンパイル（.elc ファイルは一切生成されない）
+                              (byte-compile-from-buffer (current-buffer))
+                            (error
+                             (push (format "  [FATAL] Byte-compile error: %s" (error-message-string err))
+                                   captured-warnings))))
+
+                        ;; ----------------------------------------------------
+                        ;; 2. relint の実行（正規表現の安全性・構文解析）
+                        ;; ----------------------------------------------------
                         (condition-case err
-                            (setq relint-issues (relint-buffer (current-buffer)))
+                            (let ((relint-issues (relint-buffer (current-buffer))))
+                              (dolist (re relint-issues)
+                                (push (format "  [REGEXP] %s" (my/format-relint-issue re)) captured-warnings)))
                           (error
                            (push (format "  [FATAL] Relint error: %s" (error-message-string err))
-                                 captured-warnings)))
-                      (set-buffer-modified-p nil)
-                      (setq buffer-file-name nil)))
+                                 captured-warnings))))
 
-                  (dolist (re relint-issues)
-                    (push (format "  [REGEXP] %s" (my/format-relint-issue re)) captured-warnings)))
+                    ;; クリーンアップ
+                    (set-buffer-modified-p nil)
+                    (setq buffer-file-name nil)
+                    (setq byte-compile-current-file nil)))
 
                 ;; ----------------------------------------------------
                 ;; 結果の出力

@@ -8,6 +8,8 @@
     (yy-mm-file (concat work-directory "memo/") "memo"))
   (defun my/get-task-file-path ()
     (yy-mm-file (concat work-directory "memo/") "task"))
+  (defun my/get-journal-file-path ()
+    (yy-mm-file (concat work-directory "journal/") "journal"))
 
   (setq org-capture-templates
 	'(
@@ -23,6 +25,8 @@
        "** %? :post: \n:PROPERTIES:\n:CREATED: %U\n:TAG: post\n:END:\n%i\n" :empty-lines 1 :tree-type day)
       ("t" "Task" entry (file+datetree my/get-task-file-path)
        "** TODO %?" :empty-lines 0 :tree-type day)
+      ("j" "Journal" entry (file my/get-journal-file-path)
+       "** %? :journal: \n:PROPERTIES:\n:CREATED: %U\n:TAG: journal\n:END:\n%i\n" :empty-lines 1 :tree-type day)
       )
     )
   ;; (setq listfile (concat work-directory "list.org"))

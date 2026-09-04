@@ -19,12 +19,12 @@
          (relative-path (file-relative-name current-file proj-root))
          ;; URLエンコード等の簡易対応として、拡張子 .md を .html に変換してブラウザで開く
          ;; (Marp server は md ファイルにアクセスすると HTML に変換して表示するため)
-         (target-url (format "http://localhost:8080/%s" relative-path)))
+         (target-url (format "http://localhost:3000/%s" relative-path)))
 
     ;; 1. プロジェクトルートをカレントディレクトリにして Marp サーバーを起動
     (let ((default-directory proj-root))
       (start-process-shell-command
-       "marp-server"
+       "PORT=3000 marp-server"
        "*marp-server*"
        "marp --allow-local-files --html --server ."))
 
